@@ -1183,3 +1183,34 @@ td {
     display: none;
   }
 }
+
+/* Catalog readability and denser desktop cards. */
+@media (min-width: 681px) {
+  .filters .search-field input {
+    font-size: 20px;
+  }
+  .filters .filter-main > label > select {
+    font-size: 15px;
+  }
+  .body-tabs button {
+    font-size: 14px;
+  }
+  .result-heading > label {
+    font-size: 14px;
+  }
+  .result-heading > label > select {
+    font-size: 13px;
+  }
+  .car-card .car-info {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .car-card .car-specs {
+    height: 25px;
+    margin-top: 9px;
+    margin-bottom: 7px;
+  }
+  .sell-copy > .btn.orange {
+    font-size: 16px;
+  }
+}
