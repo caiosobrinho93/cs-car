@@ -1344,6 +1344,12 @@ function VehicleForm({
                   </select>
                 </label>
                 {input("version", "Versão", v?.version)}
+            </div>
+          </details>
+          <details className="form-toggle" open>
+            <summary>Sobre o veículo</summary>
+            <div className="form-toggle-content">
+          <div className="form-grid three">
                 <label>
                   Ano
                   <input
