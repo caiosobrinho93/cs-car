@@ -41,6 +41,10 @@ import {
   demoVehicles,
   money,
   whatsapp,
+  VEHICLE_CATALOG,
+  VEHICLE_COLORS,
+  BR_STATES,
+  CITIES_BY_STATE,
 } from "@/lib/data";
 const statusLabel: Record<string, string> = {
   new: "Nova indicação",
@@ -836,7 +840,8 @@ export default function Network() {
 function Auth({ onDone }: { onDone: () => void }) {
   const [signup, setSignup] = useState(false),
     [busy, setBusy] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [state, setState] = useState("");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -912,16 +917,35 @@ function Auth({ onDone }: { onDone: () => void }) {
               <div className="form-grid">
                 <label>
                   Cidade
-                  <input name="city" required maxLength={100} />
+                  <select
+                    name="city"
+                    required
+                    defaultValue=""
+                    disabled={!state}
+                  >
+                    <option value="" disabled>
+                      Selecione a cidade
+                    </option>
+                    {(CITIES_BY_STATE[state] || []).map((city) => (
+                      <option key={city}>{city}</option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   UF
-                  <input
+                  <select
                     name="state"
                     required
-                    pattern="[A-Za-z]{2}"
-                    maxLength={2}
-                  />
+                    defaultValue=""
+                    onChange={(e) => setState(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      UF
+                    </option>
+                    {BR_STATES.map((state) => (
+                      <option key={state}>{state}</option>
+                    ))}
+                  </select>
                 </label>
               </div>
               <label>
@@ -1118,6 +1142,8 @@ function VehicleForm({
   const v = vehicle === "new" ? null : vehicle;
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
+    [brand, setBrand] = useState(v?.brand || ""),
+    [model, setModel] = useState(v?.model || ""),
     [price, setPrice] = useState(v?.price || 0),
     [fee, setFee] = useState(v?.partner_fee || 0),
     [platform, setPlatform] = useState(v?.platform_fee || 0);
@@ -1180,8 +1206,8 @@ function VehicleForm({
         id,
         garage_id: garage.id,
         garage_name: garage.name,
-        brand: String(form.get("brand")).trim(),
-        model: String(form.get("model")).trim(),
+        brand,
+        model,
         version: String(form.get("version")).trim(),
         year: Number(form.get("year")),
         price,
@@ -1253,8 +1279,42 @@ function VehicleForm({
     >
       <form onSubmit={submit} className="stack-form">
         <div className="form-grid three">
-          {input("brand", "Marca", v?.brand)}
-          {input("model", "Modelo", v?.model)}
+          <label>
+            Marca
+            <select
+              name="brand"
+              value={brand}
+              required
+              onChange={(e) => {
+                setBrand(e.target.value);
+                setModel("");
+              }}
+            >
+              <option value="" disabled>
+                Selecione a marca
+              </option>
+              {Object.keys(VEHICLE_CATALOG).map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Modelo
+            <select
+              name="model"
+              value={model}
+              required
+              disabled={!brand}
+              onChange={(e) => setModel(e.target.value)}
+            >
+              <option value="" disabled>
+                Selecione o modelo
+              </option>
+              {(VEHICLE_CATALOG[brand] || []).map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </label>
           {input("version", "Versão", v?.version)}
           <label>
             Ano
@@ -1268,7 +1328,17 @@ function VehicleForm({
             />
           </label>
           {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
-          {input("color", "Cor", v?.color)}
+          <label>
+            Cor
+            <select name="color" defaultValue={v?.color || ""} required>
+              <option value="" disabled>
+                Selecione a cor
+              </option>
+              {VEHICLE_COLORS.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </label>
           {[
             ["transmission", "Câmbio", ["Manual", "Automático"]],
             [

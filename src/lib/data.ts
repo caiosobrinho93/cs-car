@@ -31,6 +31,71 @@ export type Garage = {
   contact_email?: string;
   status: string;
 };
+export const VEHICLE_CATALOG: Record<string, string[]> = {
+  Chevrolet: ["Astra", "Onix", "Tracker", "S10"],
+  Fiat: ["Argo", "Cronos", "Pulse", "Toro"],
+  Ford: ["Ka", "EcoSport", "Ranger"],
+  Honda: ["Civic", "City", "HR-V", "Fit"],
+  Hyundai: ["HB20", "Creta", "Tucson"],
+  Jeep: ["Renegade", "Compass", "Commander"],
+  Toyota: ["Corolla", "Yaris", "Hilux", "SW4"],
+  Volkswagen: ["Gol", "Polo", "T-Cross", "Virtus"],
+};
+export const VEHICLE_COLORS = [
+  "Preto",
+  "Branco",
+  "Prata",
+  "Cinza",
+  "Vermelho",
+  "Azul",
+  "Verde",
+  "Marrom",
+];
+export const BR_STATES = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+];
+export const CITIES_BY_STATE: Record<string, string[]> = {
+  SP: [
+    "São Paulo",
+    "Votuporanga",
+    "São José do Rio Preto",
+    "Catanduva",
+    "Ribeirão Preto",
+    "Campinas",
+  ],
+  MG: ["Belo Horizonte", "Uberlândia", "Uberaba"],
+  PR: ["Curitiba", "Londrina", "Maringá"],
+  RJ: ["Rio de Janeiro", "Niterói", "Petrópolis"],
+  SC: ["Florianópolis", "Joinville", "Blumenau"],
+  RS: ["Porto Alegre", "Caxias do Sul", "Pelotas"],
+  GO: ["Goiânia", "Anápolis", "Rio Verde"],
+};
 export type Referral = {
   id: string;
   vehicle_id: string;
