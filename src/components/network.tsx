@@ -1303,144 +1303,158 @@ function VehicleForm({
           ))}
         </div>
         <div className="vehicle-step" data-step="1">
-          <div className="form-grid three">
-            <label>
-              Marca
-              <select
-                name="brand"
-                value={brand}
-                required
-                onChange={(e) => {
-                  setBrand(e.target.value);
-                  setModel("");
-                }}
-              >
-                <option value="" disabled>
-                  Selecione a marca
-                </option>
-                {Object.keys(VEHICLE_CATALOG).map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Modelo
-              <select
-                name="model"
-                value={model}
-                required
-                disabled={!brand}
-                onChange={(e) => setModel(e.target.value)}
-              >
-                <option value="" disabled>
-                  Selecione o modelo
-                </option>
-                {(VEHICLE_CATALOG[brand] || []).map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </label>
-            {input("version", "Versão", v?.version)}
-            <label>
-              Ano
-              <input
-                name="year"
-                type="number"
-                min="1900"
-                max="2200"
-                required
-                defaultValue={v?.year || 2022}
-              />
-            </label>
-            {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
-            <label>
-              Cor
-              <select name="color" defaultValue={v?.color || ""} required>
-                <option value="" disabled>
-                  Selecione a cor
-                </option>
-                {VEHICLE_COLORS.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </label>
-            {[
-              ["transmission", "Câmbio", ["Manual", "Automático"]],
-              [
-                "fuel",
-                "Combustível",
-                ["Flex", "Gasolina", "Diesel", "Elétrico", "Híbrido"],
-              ],
-              [
-                "body",
-                "Carroceria",
-                [
-                  "Hatch",
-                  "Sedã",
-                  "SUV",
-                  "Picape",
-                  "Cupê",
-                  "Conversível",
-                  "Van",
-                ],
-              ],
-              ["status", "Status", ["available", "reserved", "draft", "sold"]],
-            ].map(([name, label, opts]) => (
-              <label key={name as string}>
-                {label as string}
-                <select
-                  name={name as string}
-                  defaultValue={
-                    (v?.[name as keyof Vehicle] as string) ||
-                    (opts as string[])[0]
-                  }
-                >
-                  {(opts as string[]).map((o) => (
-                    <option key={o} value={o}>
-                      {statusLabel[o] || o}
+          <details className="form-toggle" open>
+            <summary>Sobre o fabricante</summary>
+            <div className="form-toggle-content">
+              <div className="form-grid three">
+                <label>
+                  Marca
+                  <select
+                    name="brand"
+                    value={brand}
+                    required
+                    onChange={(e) => {
+                      setBrand(e.target.value);
+                      setModel("");
+                    }}
+                  >
+                    <option value="" disabled>
+                      Selecione a marca
                     </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-          </div>
+                    {Object.keys(VEHICLE_CATALOG).map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Modelo
+                  <select
+                    name="model"
+                    value={model}
+                    required
+                    disabled={!brand}
+                    onChange={(e) => setModel(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      Selecione o modelo
+                    </option>
+                    {(VEHICLE_CATALOG[brand] || []).map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </label>
+                {input("version", "Versão", v?.version)}
+                <label>
+                  Ano
+                  <input
+                    name="year"
+                    type="number"
+                    min="1900"
+                    max="2200"
+                    required
+                    defaultValue={v?.year || 2022}
+                  />
+                </label>
+                {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
+                <label>
+                  Cor
+                  <select name="color" defaultValue={v?.color || ""} required>
+                    <option value="" disabled>
+                      Selecione a cor
+                    </option>
+                    {VEHICLE_COLORS.map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </label>
+                {[
+                  ["transmission", "Câmbio", ["Manual", "Automático"]],
+                  [
+                    "fuel",
+                    "Combustível",
+                    ["Flex", "Gasolina", "Diesel", "Elétrico", "Híbrido"],
+                  ],
+                  [
+                    "body",
+                    "Carroceria",
+                    [
+                      "Hatch",
+                      "Sedã",
+                      "SUV",
+                      "Picape",
+                      "Cupê",
+                      "Conversível",
+                      "Van",
+                    ],
+                  ],
+                  [
+                    "status",
+                    "Status",
+                    ["available", "reserved", "draft", "sold"],
+                  ],
+                ].map(([name, label, opts]) => (
+                  <label key={name as string}>
+                    {label as string}
+                    <select
+                      name={name as string}
+                      defaultValue={
+                        (v?.[name as keyof Vehicle] as string) ||
+                        (opts as string[])[0]
+                      }
+                    >
+                      {(opts as string[]).map((o) => (
+                        <option key={o} value={o}>
+                          {statusLabel[o] || o}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </details>
         </div>
         <div className="vehicle-step" data-step="2">
-          <div className="form-grid three">
-            <label>
-              Preço final (R$)
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                required
-                value={price || ""}
-                onChange={(e) => setPrice(Number(e.target.value))}
-              />
-            </label>
-            <label>
-              Comissão parceiro (R$)
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={fee}
-                onChange={(e) => setFee(Number(e.target.value))}
-              />
-            </label>
-            <label>
-              Parte CS Car (R$)
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={platform}
-                onChange={(e) => setPlatform(Number(e.target.value))}
-              />
-            </label>
-          </div>
+          <details className="form-toggle" open>
+            <summary>Condições comerciais</summary>
+            <div className="form-toggle-content">
+              <div className="form-grid three">
+                <label>
+                  Preço final (R$)
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    required
+                    value={price || ""}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                  />
+                </label>
+                <label>
+                  Comissão parceiro (R$)
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={fee}
+                    onChange={(e) => setFee(Number(e.target.value))}
+                  />
+                </label>
+                <label>
+                  Parte CS Car (R$)
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={platform}
+                    onChange={(e) => setPlatform(Number(e.target.value))}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
           <div className="price-summary">
             <p>
               Valor para o responsável pelo veículo{" "}
@@ -1452,38 +1466,48 @@ function VehicleForm({
           </div>
         </div>
         <div className="vehicle-step" data-step="3">
-          <label>
-            Descrição
-            <textarea
-              name="description"
-              defaultValue={v?.description}
-              rows={3}
-              maxLength={5000}
-              required
-            />
-          </label>
-          <label>
-            Itens e opcionais (separados por vírgula)
-            <input
-              name="features"
-              defaultValue={v?.features.join(", ")}
-              maxLength={1000}
-            />
-          </label>
-          <label>
-            Fotos do veículo
-            <input
-              name="photos"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-            />
-            <small>
-              Até 8 fotos de 5 MB. Ao selecionar novas fotos, a galeria anterior
-              será substituída.
-              {isDemo ? " Na demonstração, prefira arquivos pequenos." : ""}
-            </small>
-          </label>
+          <details className="form-toggle" open>
+            <summary>Descrição e opcionais</summary>
+            <div className="form-toggle-content">
+              <label>
+                Descrição
+                <textarea
+                  name="description"
+                  defaultValue={v?.description}
+                  rows={3}
+                  maxLength={5000}
+                  required
+                />
+              </label>
+              <label>
+                Itens e opcionais (separados por vírgula)
+                <input
+                  name="features"
+                  defaultValue={v?.features.join(", ")}
+                  maxLength={1000}
+                />
+              </label>
+            </div>
+          </details>
+          <details className="form-toggle" open>
+            <summary>Fotos do veículo</summary>
+            <div className="form-toggle-content">
+              <label>
+                Fotos do veículo
+                <input
+                  name="photos"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                />
+                <small>
+                  Até 8 fotos de 5 MB. Ao selecionar novas fotos, a galeria
+                  anterior será substituída.
+                  {isDemo ? " Na demonstração, prefira arquivos pequenos." : ""}
+                </small>
+              </label>
+            </div>
+          </details>
         </div>
         {error && (
           <p className="error" role="alert">

@@ -615,7 +615,35 @@ footer {
 dialog.modal:has(.stack-form) {
   max-width: 1040px;
   padding: 28px 30px 30px;
-  background: linear-gradient(155deg, #1a2230, #0d121a 72%);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #111a29, #10121d 48%, #1c1825);
+  background-size: 180% 180%;
+  animation: modal-atmosphere 14s ease-in-out infinite alternate;
+}
+dialog.modal:has(.stack-form)::before {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  right: -180px;
+  top: -200px;
+  border-radius: 50%;
+  background: #5877b51c;
+  filter: blur(30px);
+  pointer-events: none;
+}
+dialog.modal:has(.stack-form) > * {
+  position: relative;
+  z-index: 1;
+}
+@keyframes modal-atmosphere {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
 }
 dialog.modal:has(.stack-form) .modal-heading {
   padding-bottom: 18px;
@@ -686,6 +714,47 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
 }
 .vehicle-form-actions .btn {
   min-width: 140px;
+}
+.form-toggle {
+  overflow: hidden;
+  border: 1px solid #ffffff14;
+  border-radius: 13px;
+  background: #0b111bcc;
+}
+.form-toggle + .form-toggle {
+  margin-top: 12px;
+}
+.form-toggle summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 15px 17px;
+  color: #e8eef9;
+  font:
+    600 14px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.form-toggle summary::-webkit-details-marker {
+  display: none;
+}
+.form-toggle summary::after {
+  content: "+";
+  float: right;
+  color: #ff9876;
+  font-size: 19px;
+  line-height: 1;
+}
+.form-toggle[open] summary::after {
+  content: "−";
+}
+.form-toggle-content {
+  padding: 0 16px 17px;
+}
+.form-hint {
+  margin: 0 0 14px;
+  color: #8f9eb4;
+  font-size: 11px;
 }
 .vehicle-step > .form-grid {
   row-gap: 20px;
