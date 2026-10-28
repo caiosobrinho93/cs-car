@@ -13,6 +13,15 @@ body {
   background: #0c0e12;
   color: var(--ink);
 }
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #7f9fc9 !important;
+  box-shadow:
+    0 0 0 3px #7f9fc933,
+    0 0 20px #7f9fc91c;
+}
 .header {
   background: #0c0e12ef;
   border-color: #ffffff12;
