@@ -612,6 +612,77 @@ footer {
 .modal.wide {
   max-width: 1080px;
 }
+dialog.modal:has(.stack-form) {
+  max-width: 1040px;
+  padding: 28px 30px 30px;
+  background: linear-gradient(155deg, #1a2230, #0d121a 72%);
+}
+dialog.modal:has(.stack-form) .modal-heading {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #ffffff12;
+}
+dialog.modal:has(.stack-form) .modal-heading h2 {
+  font-size: 26px;
+  letter-spacing: 0.08em;
+}
+.stack-form {
+  gap: 16px;
+}
+.stack-form .form-grid {
+  gap: 14px;
+}
+.stack-form label {
+  gap: 7px;
+  color: #aebbd0;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stack-form input:not([type="checkbox"], [type="file"]),
+.stack-form select,
+.stack-form textarea {
+  min-height: 46px;
+  border-radius: 10px;
+  border-color: #34445b;
+  background: #0c131e;
+  color: #f2f6ff;
+  padding: 12px 13px;
+  font-size: 14px;
+}
+.stack-form textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.stack-form input[type="file"] {
+  padding: 11px;
+  border: 1px dashed #53657e;
+  border-radius: 10px;
+  background: #0c131e;
+  color: #b8c7dc;
+}
+.stack-form .price-summary {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #202f45, #172233);
+  border-color: #3a5576;
+}
+.stack-form .price-summary strong {
+  font-size: 23px;
+  color: #fff;
+}
+.stack-form > .btn {
+  min-height: 52px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+.dashboard .workspace {
+  background:
+    radial-gradient(circle at 80% 0, #1d2b40 0, transparent 38%), #0b1018;
+}
+.dashboard .stat-card {
+  border-color: #34445d;
+  box-shadow: 0 12px 30px #0003;
+}
 .details {
   grid-template-columns: 1.15fr 0.85fr;
   gap: 34px;
