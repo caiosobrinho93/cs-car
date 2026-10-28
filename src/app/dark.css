@@ -628,6 +628,60 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
 .stack-form {
   gap: 16px;
 }
+.vehicle-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid #ffffff12;
+  border-radius: 13px;
+  background: #0b111b;
+}
+.vehicle-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #8292aa;
+  font:
+    600 12px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vehicle-tabs button span {
+  color: #56657a;
+  font-size: 10px;
+}
+.vehicle-tabs button.active {
+  background: #263750;
+  color: #fff;
+  box-shadow: 0 4px 14px #0004;
+}
+.vehicle-tabs button.active span {
+  color: #ff9a79;
+}
+.vehicle-step {
+  display: none;
+}
+.stack-form[data-step="1"] .vehicle-step[data-step="1"],
+.stack-form[data-step="2"] .vehicle-step[data-step="2"],
+.stack-form[data-step="3"] .vehicle-step[data-step="3"] {
+  display: block;
+}
+.vehicle-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 5px;
+}
+.vehicle-form-actions .btn {
+  min-width: 140px;
+}
 .stack-form .form-grid {
   gap: 14px;
 }

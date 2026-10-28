@@ -1142,6 +1142,7 @@ function VehicleForm({
   const v = vehicle === "new" ? null : vehicle;
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
+    [step, setStep] = useState(1),
     [brand, setBrand] = useState(v?.brand || ""),
     [model, setModel] = useState(v?.model || ""),
     [price, setPrice] = useState(v?.price || 0),
@@ -1277,185 +1278,243 @@ function VehicleForm({
       onClose={onClose}
       wide
     >
-      <form onSubmit={submit} className="stack-form">
-        <div className="form-grid three">
-          <label>
-            Marca
-            <select
-              name="brand"
-              value={brand}
-              required
-              onChange={(e) => {
-                setBrand(e.target.value);
-                setModel("");
-              }}
-            >
-              <option value="" disabled>
-                Selecione a marca
-              </option>
-              {Object.keys(VEHICLE_CATALOG).map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Modelo
-            <select
-              name="model"
-              value={model}
-              required
-              disabled={!brand}
-              onChange={(e) => setModel(e.target.value)}
-            >
-              <option value="" disabled>
-                Selecione o modelo
-              </option>
-              {(VEHICLE_CATALOG[brand] || []).map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-          {input("version", "Versão", v?.version)}
-          <label>
-            Ano
-            <input
-              name="year"
-              type="number"
-              min="1900"
-              max="2200"
-              required
-              defaultValue={v?.year || 2022}
-            />
-          </label>
-          {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
-          <label>
-            Cor
-            <select name="color" defaultValue={v?.color || ""} required>
-              <option value="" disabled>
-                Selecione a cor
-              </option>
-              {VEHICLE_COLORS.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
+      <form onSubmit={submit} className="stack-form" data-step={step}>
+        <div
+          className="vehicle-tabs"
+          role="tablist"
+          aria-label="Etapas do anúncio"
+        >
           {[
-            ["transmission", "Câmbio", ["Manual", "Automático"]],
-            [
-              "fuel",
-              "Combustível",
-              ["Flex", "Gasolina", "Diesel", "Elétrico", "Híbrido"],
-            ],
-            [
-              "body",
-              "Carroceria",
-              ["Hatch", "Sedã", "SUV", "Picape", "Cupê", "Conversível", "Van"],
-            ],
-            ["status", "Status", ["available", "reserved", "draft", "sold"]],
-          ].map(([name, label, opts]) => (
-            <label key={name as string}>
-              {label as string}
+            ["1", "Veículo"],
+            ["2", "Comercial"],
+            ["3", "Detalhes"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={step === Number(value)}
+              className={step === Number(value) ? "active" : ""}
+              onClick={() => setStep(Number(value))}
+            >
+              <span>0{value}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="vehicle-step" data-step="1">
+          <div className="form-grid three">
+            <label>
+              Marca
               <select
-                name={name as string}
-                defaultValue={
-                  (v?.[name as keyof Vehicle] as string) ||
-                  (opts as string[])[0]
-                }
+                name="brand"
+                value={brand}
+                required
+                onChange={(e) => {
+                  setBrand(e.target.value);
+                  setModel("");
+                }}
               >
-                {(opts as string[]).map((o) => (
-                  <option key={o} value={o}>
-                    {statusLabel[o] || o}
-                  </option>
+                <option value="" disabled>
+                  Selecione a marca
+                </option>
+                {Object.keys(VEHICLE_CATALOG).map((item) => (
+                  <option key={item}>{item}</option>
                 ))}
               </select>
             </label>
-          ))}
+            <label>
+              Modelo
+              <select
+                name="model"
+                value={model}
+                required
+                disabled={!brand}
+                onChange={(e) => setModel(e.target.value)}
+              >
+                <option value="" disabled>
+                  Selecione o modelo
+                </option>
+                {(VEHICLE_CATALOG[brand] || []).map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+            {input("version", "Versão", v?.version)}
+            <label>
+              Ano
+              <input
+                name="year"
+                type="number"
+                min="1900"
+                max="2200"
+                required
+                defaultValue={v?.year || 2022}
+              />
+            </label>
+            {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
+            <label>
+              Cor
+              <select name="color" defaultValue={v?.color || ""} required>
+                <option value="" disabled>
+                  Selecione a cor
+                </option>
+                {VEHICLE_COLORS.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+            {[
+              ["transmission", "Câmbio", ["Manual", "Automático"]],
+              [
+                "fuel",
+                "Combustível",
+                ["Flex", "Gasolina", "Diesel", "Elétrico", "Híbrido"],
+              ],
+              [
+                "body",
+                "Carroceria",
+                [
+                  "Hatch",
+                  "Sedã",
+                  "SUV",
+                  "Picape",
+                  "Cupê",
+                  "Conversível",
+                  "Van",
+                ],
+              ],
+              ["status", "Status", ["available", "reserved", "draft", "sold"]],
+            ].map(([name, label, opts]) => (
+              <label key={name as string}>
+                {label as string}
+                <select
+                  name={name as string}
+                  defaultValue={
+                    (v?.[name as keyof Vehicle] as string) ||
+                    (opts as string[])[0]
+                  }
+                >
+                  {(opts as string[]).map((o) => (
+                    <option key={o} value={o}>
+                      {statusLabel[o] || o}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
         </div>
-        <div className="form-grid three">
+        <div className="vehicle-step" data-step="2">
+          <div className="form-grid three">
+            <label>
+              Preço final (R$)
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                required
+                value={price || ""}
+                onChange={(e) => setPrice(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              Comissão parceiro (R$)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={fee}
+                onChange={(e) => setFee(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              Parte CS Car (R$)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={platform}
+                onChange={(e) => setPlatform(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <div className="price-summary">
+            <p>
+              Valor para o responsável pelo veículo{" "}
+              <strong>{money(price - fee - platform)}</strong>
+            </p>
+            <small>
+              Preço final menos a comissão do parceiro e a parte da CS Car.
+            </small>
+          </div>
+        </div>
+        <div className="vehicle-step" data-step="3">
           <label>
-            Preço final (R$)
-            <input
-              type="number"
-              min="1"
-              step="0.01"
+            Descrição
+            <textarea
+              name="description"
+              defaultValue={v?.description}
+              rows={3}
+              maxLength={5000}
               required
-              value={price || ""}
-              onChange={(e) => setPrice(Number(e.target.value))}
             />
           </label>
           <label>
-            Comissão parceiro (R$)
+            Itens e opcionais (separados por vírgula)
             <input
-              type="number"
-              min="0"
-              step="0.01"
-              required
-              value={fee}
-              onChange={(e) => setFee(Number(e.target.value))}
+              name="features"
+              defaultValue={v?.features.join(", ")}
+              maxLength={1000}
             />
           </label>
           <label>
-            Parte CS Car (R$)
+            Fotos do veículo
             <input
-              type="number"
-              min="0"
-              step="0.01"
-              required
-              value={platform}
-              onChange={(e) => setPlatform(Number(e.target.value))}
+              name="photos"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
             />
+            <small>
+              Até 8 fotos de 5 MB. Ao selecionar novas fotos, a galeria anterior
+              será substituída.
+              {isDemo ? " Na demonstração, prefira arquivos pequenos." : ""}
+            </small>
           </label>
         </div>
-        <div className="price-summary">
-          <p>
-            Valor para o responsável pelo veículo{" "}
-            <strong>{money(price - fee - platform)}</strong>
-          </p>
-          <small>
-            Preço final menos a comissão do parceiro e a parte da CS Car.
-          </small>
-        </div>
-        <label>
-          Descrição
-          <textarea
-            name="description"
-            defaultValue={v?.description}
-            rows={3}
-            maxLength={5000}
-            required
-          />
-        </label>
-        <label>
-          Itens e opcionais (separados por vírgula)
-          <input
-            name="features"
-            defaultValue={v?.features.join(", ")}
-            maxLength={1000}
-          />
-        </label>
-        <label>
-          Fotos do veículo
-          <input
-            name="photos"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-          />
-          <small>
-            Até 8 fotos de 5 MB. Ao selecionar novas fotos, a galeria anterior
-            será substituída.
-            {isDemo ? " Na demonstração, prefira arquivos pequenos." : ""}
-          </small>
-        </label>
         {error && (
           <p className="error" role="alert">
             {error}
           </p>
         )}
-        <button disabled={busy} className="btn orange">
-          {busy ? "Salvando…" : "Salvar anúncio"}
-          <CheckCircle2 size={18} />
-        </button>
+        <div className="vehicle-form-actions">
+          {step > 1 && (
+            <button
+              type="button"
+              className="btn outline"
+              onClick={() => setStep(step - 1)}
+            >
+              Voltar
+            </button>
+          )}
+          {step < 3 ? (
+            <button
+              type="button"
+              className="btn orange"
+              onClick={() => setStep(step + 1)}
+            >
+              Continuar <ArrowRight size={18} />
+            </button>
+          ) : (
+            <button disabled={busy} className="btn orange">
+              {busy ? "Salvando…" : "Salvar anúncio"}
+              <CheckCircle2 size={18} />
+            </button>
+          )}
+        </div>
       </form>
     </Modal>
   );
