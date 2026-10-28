@@ -11,6 +11,7 @@ create table public.garages(
  city text not null check(char_length(city) between 1 and 100),
  state text not null check(state ~ '^[A-Z]{2}$'),
  phone text not null check(char_length(phone) between 10 and 20),
+ contact_email text not null default '',
  status text not null default 'pending' check(status in ('pending','approved','rejected')),
  created_at timestamptz not null default now()
 );
@@ -68,7 +69,7 @@ create table public.referral_events(
 create function public.register_garage() returns trigger language plpgsql security definer set search_path='' as $$
 begin
  insert into public.garages(owner_id,name,city,state,phone)
- values(new.id,trim(new.raw_user_meta_data->>'garage_name'),trim(new.raw_user_meta_data->>'city'),upper(new.raw_user_meta_data->>'state'),new.raw_user_meta_data->>'phone');
+ values(new.id,trim(new.raw_user_meta_data->>'garage_name'),trim(new.raw_user_meta_data->>'city'),upper(new.raw_user_meta_data->>'state'),new.raw_user_meta_data->>'phone',new.email);
  return new;
 end;$$;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.register_garage();

@@ -760,6 +760,7 @@ export default function Network() {
                   <p>
                     {g.city}, {g.state} · {g.phone}
                   </p>
+                  {g.contact_email && <small>{g.contact_email}</small>}
                   <div className="referral-actions">
                     <button
                       disabled={busy}
@@ -899,7 +900,7 @@ function Auth({ onDone }: { onDone: () => void }) {
           <h2>{signup ? "Faça parte da rede." : "Bem-vindo de volta."}</h2>
           <p>
             {signup
-              ? "Seu cadastro será analisado pela CS Car."
+              ? "Crie seu usuário e cadastre a garagem que ele representa. A CS Car aprova cada acesso."
               : "Acesse o espaço da sua garagem."}
           </p>
           {signup && (
@@ -966,8 +967,8 @@ function Auth({ onDone }: { onDone: () => void }) {
             }}
           >
             {signup
-              ? "Já sou parceiro. Entrar"
-              : "Quero cadastrar minha garagem"}
+              ? "Já tenho cadastro. Entrar"
+              : "Criar usuário e cadastrar garagem"}
           </button>
           {message && (
             <p role="status" className="form-message">

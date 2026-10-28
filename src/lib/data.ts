@@ -28,6 +28,7 @@ export type Garage = {
   city: string;
   state: string;
   phone: string;
+  contact_email?: string;
   status: string;
 };
 export type Referral = {
