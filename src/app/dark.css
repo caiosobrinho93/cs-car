@@ -542,6 +542,69 @@ select option {
 .home-carousel-status p {
   margin: 0;
 }
+.site-page .car-card {
+  padding: 0;
+  border: 1px solid #292e3a;
+  border-radius: 18px;
+  background: #11151d;
+  box-shadow:
+    inset 0 1px 0 #ffffff0a,
+    0 16px 34px #0008;
+}
+.site-page .car-card::before {
+  inset: 3px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    #55d9e8,
+    #283747 44%,
+    #343044 67%,
+    #a86af0
+  );
+  opacity: 0.86;
+  animation: none;
+}
+.site-page .car-card:hover::before,
+.site-page .car-card:focus-within::before {
+  opacity: 1;
+  animation: none;
+}
+.site-page .car-rarity {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #ffffff18;
+  background: linear-gradient(110deg, #1a1d23, #151923 58%, #1c1924);
+  color: #c9cbd0;
+  font-size: 12px;
+  letter-spacing: 5px;
+  text-shadow: 0 0 8px #8b72d855;
+}
+.site-page .car-photo {
+  aspect-ratio: 1.65;
+  border-radius: 0;
+}
+.site-page .car-info {
+  padding: 14px 16px 16px;
+  background: linear-gradient(112deg, #292b30 0%, #293b4d 53%, #302740 100%);
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+}
+.site-page .car-title h3,
+.site-page .car-price strong {
+  color: #f5f6fa;
+}
+.site-page .car-price {
+  border-color: #ffffff20;
+}
+.site-page .car-location {
+  color: #d0d3dc;
+}
+.dashboard .car-rarity {
+  display: none;
+}
 @media (max-width: 700px) {
   .home-carousel-section {
     padding: 48px 5% 78px;
@@ -557,6 +620,13 @@ select option {
   .carousel-intro-copy {
     max-width: 34ch;
     margin-top: 10px;
+  }
+  .site-page .car-rarity {
+    height: 30px;
+    font-size: 11px;
+  }
+  .site-page .car-info {
+    padding: 12px 12px 14px;
   }
 }
 .result-heading,

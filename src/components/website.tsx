@@ -69,7 +69,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
   return (
     <>
       <Header />
-      <main>
+      <main className={`site-page ${shop ? "shop-page" : "home-page"}`}>
         {!shop ? (
           <Hero />
         ) : (

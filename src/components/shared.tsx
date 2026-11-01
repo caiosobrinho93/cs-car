@@ -214,6 +214,9 @@ export function VehicleCard({
       onPointerLeave={resetTilt}
       onPointerCancel={resetTilt}
     >
+      <span className="car-rarity" aria-hidden="true">
+        ★★★★★
+      </span>
       <div className="car-photo">
         <button
           onClick={onOpen}
