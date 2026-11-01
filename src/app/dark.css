@@ -1620,3 +1620,88 @@ td {
     font-size: 16px;
   }
 }
+
+/* Mobile reading sizes: keep controls and vehicle information comfortably legible. */
+@media (max-width: 680px) {
+  .filters .search-field input {
+    font-size: 15px;
+  }
+  .filters .filter-main > label > select {
+    font-size: 15px;
+  }
+  .filters .filter-main > label {
+    font-size: 12px;
+  }
+  .filters .filter-toggle {
+    font-size: 14px;
+  }
+  .filters .filter-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+  .body-tabs button {
+    font-size: 14px;
+  }
+  .saved-filter {
+    font-size: 13px;
+  }
+  .result-heading,
+  .result-heading select {
+    font-size: 13px;
+  }
+  .demo-notice {
+    font-size: 12px;
+  }
+  .demo-pill {
+    font-size: 10px;
+  }
+  .car-title button > span {
+    font-size: 12px;
+  }
+  .car-version,
+  .car-specs,
+  .car-location {
+    font-size: 12px;
+  }
+  .car-year {
+    font-size: 12px;
+  }
+  .car-badge {
+    font-size: 10px;
+  }
+  .browse-all {
+    font-size: 13px;
+  }
+  .connection-steps p,
+  .sell-copy > p:not(.eyebrow),
+  .partner-banner p:not(.eyebrow) {
+    font-size: 15px;
+  }
+  .photo-caption,
+  .detail-copy > small {
+    font-size: 12px;
+  }
+  .detail-features {
+    font-size: 12px;
+  }
+  .dashboard-demo,
+  .dashboard-title > div > p:not(.eyebrow),
+  .stat-card > div,
+  .network-callout p,
+  .network-terms small,
+  .dashboard-footnote,
+  .referral-explainer,
+  .price-summary p,
+  .auth-layout > div > p:not(.eyebrow) {
+    font-size: 12px;
+  }
+  .sidebar nav > button,
+  .dashboard-section-title .text-btn,
+  .network-terms .btn,
+  .stack-form label {
+    font-size: 13px;
+  }
+  .referral-values span {
+    font-size: 12px;
+  }
+}
