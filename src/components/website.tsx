@@ -69,11 +69,11 @@ export default function Website({ shop = false }: { shop?: boolean }) {
         )}
         {!shop && (
           <div className="manifesto-strip">
-            <span>Seu carro está na nossa rede.</span>
+            <span>VEÍCULO</span>
             <span className="strip-star">✳</span>
-            <span>Sua próxima história também.</span>
+            <span>MOTO</span>
             <span className="strip-star">✳</span>
-            <span>CS CAR / CONEXÕES QUE MOVEM</span>
+            <span>CARRO NOVO</span>
           </div>
         )}
         {!shop && (

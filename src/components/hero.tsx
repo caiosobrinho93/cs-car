@@ -184,7 +184,6 @@ export default function Hero() {
             <ArrowDown size={16} /> ROLE PARA EXPLORAR
           </a>
         </div>
-        <div className="scroll-progress" />
       </div>
     </section>
   );

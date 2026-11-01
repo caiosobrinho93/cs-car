@@ -94,10 +94,30 @@ textarea:focus {
     linear-gradient(0deg, #0c0e12, transparent 30%);
 }
 .manifesto-strip {
-  background: #14171e;
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(115deg, #111722, #1c1720, #101923, #111722);
+  background-size: 260% 260%;
+  animation: manifesto-drift 16s ease-in-out infinite alternate;
   border-top: 1px solid #ffffff0c;
   border-bottom: 1px solid var(--line);
   color: #d9dce4;
+}
+@keyframes manifesto-drift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+.manifesto-strip > span:not(.strip-star) {
+  color: #f0f3fa;
+  font:
+    600 13px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 .inventory {
   background:
@@ -363,8 +383,8 @@ select option {
 .car-photo {
   aspect-ratio: 1.65;
   background: #252c39;
-  margin: 9px 9px 0;
-  border-radius: 11px;
+  margin: 0;
+  border-radius: 15px 15px 0 0;
   overflow: hidden;
 }
 .car-photo::after {
@@ -422,7 +442,7 @@ select option {
   color: #ff9775;
 }
 .car-info {
-  padding: 18px;
+  padding: 8px 18px 18px;
 }
 .car-title button > span {
   color: #aeb8cb;
@@ -535,6 +555,10 @@ select option {
 }
 .sell-copy > p:not(.eyebrow) {
   color: #b0bbcf;
+  font-size: 15px;
+}
+.partner-banner p:not(.eyebrow) {
+  font-size: 15px;
 }
 .partner-banner {
   background: radial-gradient(ellipse at 0% 100%, #252b3c55, transparent 70%);
@@ -1342,9 +1366,10 @@ td {
   }
   .car-photo {
     aspect-ratio: 1.5;
+    border-radius: 14px 14px 0 0;
   }
   .car-info {
-    padding: 22px;
+    padding: 8px 22px 22px;
   }
   .car-title h3 {
     font-size: 29px;
