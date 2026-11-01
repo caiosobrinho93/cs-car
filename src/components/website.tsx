@@ -42,7 +42,35 @@ export default function Website({ shop = false }: { shop?: boolean }) {
     localStorage.setItem("cs-favorites", JSON.stringify(next));
   }
   const list = filterVehicles(vehicles, filters, favorites);
-  const visible = shop ? list : list.slice(0, 3);
+  const newest = [...vehicles]
+    .filter((vehicle) => vehicle.status === "available")
+    .sort((a, b) => b.year - a.year)
+    .slice(0, 8);
+  const popular = [...vehicles]
+    .filter((vehicle) => vehicle.status === "available")
+    .sort(
+      (a, b) =>
+        Number(b.featured) - Number(a.featured) ||
+        Number(favorites.includes(b.id)) - Number(favorites.includes(a.id)),
+    )
+    .slice(0, 8);
+  const visible = shop ? list : list.slice(0, 8);
+  const renderRail = (items: Vehicle[], railName: string) => (
+    <div className="vehicle-rail" aria-label={railName}>
+      {items.map((v) => (
+        <VehicleCard
+          key={`${railName}-${v.id}`}
+          v={v}
+          onOpen={() => setSelected(v)}
+          favorite={favorites.includes(v.id)}
+          onFavorite={() => favorite(v.id)}
+        />
+      ))}
+      {!items.length && (
+        <p className="rail-empty">Novos carros chegando em breve.</p>
+      )}
+    </div>
+  );
   return (
     <>
       <Header />
@@ -120,125 +148,242 @@ export default function Website({ shop = false }: { shop?: boolean }) {
             </span>
           </section>
         )}
-        <section className="inventory section" id="selecao">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">
-                {shop
-                  ? "O CARRO CERTO, DO SEU JEITO"
-                  : "01 / ENCONTRE SUA PRÓXIMA DIREÇÃO"}
-              </p>
-              <h2>
-                {shop ? (
-                  "Explore a loja."
-                ) : (
-                  <>
-                    Escolhas que <em>movem.</em>
-                  </>
-                )}
-              </h2>
+        {shop ? (
+          <section className="inventory section" id="selecao">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">
+                  {shop
+                    ? "O CARRO CERTO, DO SEU JEITO"
+                    : "01 / ENCONTRE SUA PRÓXIMA DIREÇÃO"}
+                </p>
+                <h2>
+                  {shop ? (
+                    "Explore a loja."
+                  ) : (
+                    <>
+                      Escolhas que <em>movem.</em>
+                    </>
+                  )}
+                </h2>
+              </div>
+              {!shop && (
+                <Link className="text-link" href="/loja">
+                  Ver todos os veículos <ArrowUpRight size={20} />
+                </Link>
+              )}
             </div>
-            {!shop && (
-              <Link className="text-link" href="/loja">
-                Ver todos os veículos <ArrowUpRight size={20} />
-              </Link>
-            )}
-          </div>
-          <FilterBar
-            vehicles={vehicles}
-            value={filters}
-            onChange={setFilters}
-          />
-          <div className="catalog-toolbar">
-            <div className="body-tabs">
-              {["", "Hatch", "Sedã", "SUV", "Picape"].map((b) => (
-                <button
-                  key={b}
-                  className={filters.body === b ? "selected" : ""}
-                  onClick={() => setFilters({ ...filters, body: b })}
-                >
-                  {b || "Todos"}
-                </button>
-              ))}
-            </div>
-            <button
-              className={
-                "saved-filter " + (filters.favorites ? "selected" : "")
-              }
-              onClick={() =>
-                setFilters({ ...filters, favorites: !filters.favorites })
-              }
-            >
-              <Heart size={15} /> Favoritos ({favorites.length})
-            </button>
-          </div>
-          <div className="result-heading">
-            <span>
-              {loading
-                ? "Carregando veículos…"
-                : `${list.length} veículos encontrados`}
-            </span>
-            <label>
-              Ordenar por{" "}
-              <select
-                aria-label="Ordenar veículos"
-                value={filters.sort}
-                onChange={(e) =>
-                  setFilters({ ...filters, sort: e.target.value })
+            <FilterBar
+              vehicles={vehicles}
+              value={filters}
+              onChange={setFilters}
+            />
+            <div className="catalog-toolbar">
+              <div className="body-tabs">
+                {["", "Hatch", "Sedã", "SUV", "Picape"].map((b) => (
+                  <button
+                    key={b}
+                    className={filters.body === b ? "selected" : ""}
+                    onClick={() => setFilters({ ...filters, body: b })}
+                  >
+                    {b || "Todos"}
+                  </button>
+                ))}
+              </div>
+              <button
+                className={
+                  "saved-filter " + (filters.favorites ? "selected" : "")
+                }
+                onClick={() =>
+                  setFilters({ ...filters, favorites: !filters.favorites })
                 }
               >
-                <option value="featured">Destaques</option>
-                <option value="price-up">Menor preço</option>
-                <option value="price-down">Maior preço</option>
-                <option value="newest">Mais novos</option>
-              </select>
-            </label>
-          </div>
-          <DemoNotice />
-          {error ? (
-            <div className="empty">
-              <p>{error}</p>
-              <button onClick={refresh} className="btn dark">
-                Tentar novamente
+                <Heart size={15} /> Favoritos ({favorites.length})
               </button>
             </div>
-          ) : (
-            <div className="car-grid">
-              {visible.map((v) => (
-                <VehicleCard
-                  key={v.id}
-                  v={v}
-                  onOpen={() => setSelected(v)}
-                  favorite={favorites.includes(v.id)}
-                  onFavorite={() => favorite(v.id)}
-                />
-              ))}
+            <div className="result-heading">
+              <span>
+                {loading
+                  ? "Carregando veículos…"
+                  : `${list.length} veículos encontrados`}
+              </span>
+              <label>
+                Ordenar por{" "}
+                <select
+                  aria-label="Ordenar veículos"
+                  value={filters.sort}
+                  onChange={(e) =>
+                    setFilters({ ...filters, sort: e.target.value })
+                  }
+                >
+                  <option value="featured">Destaques</option>
+                  <option value="price-up">Menor preço</option>
+                  <option value="price-down">Maior preço</option>
+                  <option value="newest">Mais novos</option>
+                </select>
+              </label>
             </div>
-          )}
-          {!loading && !error && !list.length && (
-            <div className="empty">
-              <Search size={36} />
-              <h3>Nenhum carro por aqui. Ainda.</h3>
-              <p>
-                Experimente outros filtros ou conte para a CS Car o que você
-                procura.
-              </p>
-              <button
-                className="btn dark"
-                onClick={() => setFilters(emptyFilters)}
-              >
-                Limpar filtros
-              </button>
-            </div>
-          )}
-          {!shop && (
-            <Link href="/loja" className="btn outline browse-all">
-              Explore todos os veículos <ArrowRight size={18} />
-            </Link>
-          )}
-        </section>
-        {!shop && (
+            <DemoNotice />
+            {error ? (
+              <div className="empty">
+                <p>{error}</p>
+                <button onClick={refresh} className="btn dark">
+                  Tentar novamente
+                </button>
+              </div>
+            ) : (
+              <div className="car-grid">
+                {visible.map((v) => (
+                  <VehicleCard
+                    key={v.id}
+                    v={v}
+                    onOpen={() => setSelected(v)}
+                    favorite={favorites.includes(v.id)}
+                    onFavorite={() => favorite(v.id)}
+                  />
+                ))}
+              </div>
+            )}
+            {!loading && !error && !list.length && (
+              <div className="empty">
+                <Search size={36} />
+                <h3>Nenhum carro por aqui. Ainda.</h3>
+                <p>
+                  Experimente outros filtros ou conte para a CS Car o que você
+                  procura.
+                </p>
+                <button
+                  className="btn dark"
+                  onClick={() => setFilters(emptyFilters)}
+                >
+                  Limpar filtros
+                </button>
+              </div>
+            )}
+            {!shop && (
+              <Link href="/loja" className="btn outline browse-all">
+                Explore todos os veículos <ArrowRight size={18} />
+              </Link>
+            )}
+          </section>
+        ) : (
           <>
+            <section className="showcase-section section" id="selecao">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">01 / ESCOLHAS DA REDE</p>
+                  <h2>
+                    Carros em <em>destaque.</em>
+                  </h2>
+                </div>
+                <Link className="text-link" href="/loja">
+                  Ver todo o estoque <ArrowUpRight size={20} />
+                </Link>
+              </div>
+              <DemoNotice />
+              {renderRail(
+                list.filter((v) => v.featured).slice(0, 8).length
+                  ? list.filter((v) => v.featured).slice(0, 8)
+                  : list.slice(0, 8),
+                "Carros em destaque",
+              )}
+            </section>
+            <section className="promo-banner section">
+              <div>
+                <p className="eyebrow">CS CAR / CONEXÃO SOB MEDIDA</p>
+                <h2>
+                  O próximo carro
+                  <br />
+                  <em>está mais perto.</em>
+                </h2>
+                <p>
+                  Encontre opções da nossa rede e converse com a gente para
+                  descobrir o carro certo para você.
+                </p>
+              </div>
+              <Link className="btn orange" href="/loja">
+                Encontrar meu carro <ArrowUpRight size={18} />
+              </Link>
+            </section>
+            <section className="sell-banner" id="vender">
+              <div className="sell-image">
+                <img
+                  src="/sequence/desktop/075.webp"
+                  loading="lazy"
+                  alt="Carro esportivo em uma garagem iluminada"
+                />
+              </div>
+              <div className="sell-copy">
+                <p className="eyebrow">CS CAR / ANUNCIE COM A GENTE</p>
+                <h2>
+                  Seu carro.
+                  <br />O próximo sonho
+                  <br />
+                  <em>de alguém.</em>
+                </h2>
+                <p>
+                  Quer vender? A CS Car aproxima seu veículo de quem está
+                  procurando. Fale com a gente para anunciar.
+                </p>
+                <a
+                  href={whatsapp("Olá! Quero anunciar meu carro na CS Car.")}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn orange"
+                >
+                  Quero vender meu carro <ArrowUpRight size={18} />
+                </a>
+              </div>
+            </section>
+            <section className="showcase-section section newest-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">02 / ACABARAM DE CHEGAR</p>
+                  <h2>
+                    Recém-<em>chegados.</em>
+                  </h2>
+                </div>
+                <Link className="text-link" href="/loja">
+                  Explorar novidades <ArrowUpRight size={20} />
+                </Link>
+              </div>
+              {renderRail(newest, "Veículos recém-chegados")}
+            </section>
+            <section className="newsletter-section section">
+              <div className="newsletter-copy">
+                <p className="eyebrow">CS CAR / FIQUE POR DENTRO</p>
+                <h2>
+                  O próximo capítulo
+                  <br />
+                  <em>chega no seu e-mail.</em>
+                </h2>
+                <p>
+                  Receba novidades da rede e descubra quando chegar um carro que
+                  combina com você.
+                </p>
+                <Newsletter />
+              </div>
+              <div className="newsletter-art" aria-hidden="true">
+                <img src="/sequence/desktop/042.webp" alt="" loading="lazy" />
+                <span>
+                  CS<span>/</span>
+                </span>
+              </div>
+            </section>
+            <section className="showcase-section section popular-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">03 / ESCOLHAS QUE MOVEM</p>
+                  <h2>
+                    Os mais <em>procurados.</em>
+                  </h2>
+                </div>
+                <Link className="text-link" href="/loja">
+                  Ver todos <ArrowUpRight size={20} />
+                </Link>
+              </div>
+              {renderRail(popular, "Veículos mais procurados")}
+            </section>
             <section className="connection section" id="conexao">
               <div className="connection-title">
                 <p className="eyebrow">02 / A GENTE CONECTA</p>
@@ -286,37 +431,6 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 ))}
               </div>
             </section>
-            <section className="sell-banner" id="vender">
-              <div className="sell-image">
-                <img
-                  src="/sequence/desktop/075.webp"
-                  loading="lazy"
-                  alt="Detalhe do carro esportivo da CS Car"
-                />
-              </div>
-              <div className="sell-copy">
-                <p className="eyebrow">03 / DEIXE A GENTE FAZER A CONEXÃO</p>
-                <h2>
-                  Seu carro.
-                  <br />O próximo sonho
-                  <br />
-                  <em>de alguém.</em>
-                </h2>
-                <p>
-                  Quer vender? A CS Car aproxima seu veículo de quem está
-                  procurando por ele. Fale com a gente para combinar o anúncio e
-                  as condições de intermediação.
-                </p>
-                <a
-                  href={whatsapp("Olá! Quero anunciar meu carro na CS Car.")}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn orange"
-                >
-                  Quero vender meu carro <ArrowUpRight size={18} />
-                </a>
-              </div>
-            </section>
             <section className="partner-banner section">
               <div>
                 <p className="eyebrow">CS CAR / REDE DE PARCEIROS</p>
@@ -353,5 +467,38 @@ export default function Website({ shop = false }: { shop?: boolean }) {
         <VehicleDetails v={selected} onClose={() => setSelected(null)} />
       )}
     </>
+  );
+}
+
+function Newsletter() {
+  const [email, setEmail] = useState(""),
+    [submitted, setSubmitted] = useState(false);
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!email.trim()) return;
+    setSubmitted(true);
+  }
+  return submitted ? (
+    <p className="newsletter-success" role="status">
+      Obrigado pelo interesse. A inscrição por e-mail será ativada em breve.
+    </p>
+  ) : (
+    <form className="newsletter-form" onSubmit={submit}>
+      <label className="sr-only" htmlFor="newsletter-email">
+        Seu e-mail
+      </label>
+      <input
+        id="newsletter-email"
+        type="email"
+        autoComplete="email"
+        placeholder="Seu melhor e-mail"
+        required
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+      />
+      <button className="btn orange" type="submit">
+        Quero receber <ArrowRight size={18} />
+      </button>
+    </form>
   );
 }

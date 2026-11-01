@@ -572,6 +572,145 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 23px;
 }
+.showcase-section {
+  overflow: hidden;
+}
+.vehicle-rail {
+  display: grid;
+  grid-auto-columns: minmax(270px, 31%);
+  grid-auto-flow: column;
+  gap: 22px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #465066 transparent;
+  padding: 5px 3px 22px;
+}
+.vehicle-rail > .car-card {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.rail-empty {
+  color: var(--muted);
+  font-size: 15px;
+  padding: 28px 0;
+}
+.promo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  min-height: 260px;
+  background:
+    radial-gradient(ellipse at 82% 20%, #ff714328, transparent 45%),
+    linear-gradient(120deg, #151a25, #20202a 55%, #151a25);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.promo-banner h2,
+.newsletter-copy h2 {
+  font-size: clamp(34px, 4vw, 54px);
+  line-height: 1.05;
+  margin: 16px 0;
+}
+.promo-banner h2 em,
+.newsletter-copy h2 em {
+  color: var(--orange);
+}
+.promo-banner p:not(.eyebrow),
+.newsletter-copy > p:not(.eyebrow) {
+  color: #b0bbcf;
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 520px;
+}
+.newsletter-section {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 50px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #111722, #15151e 55%, #1b171b);
+}
+.newsletter-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  max-width: 560px;
+}
+.newsletter-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  border: 1px solid #384256;
+  border-radius: 10px;
+  padding: 0 16px;
+  background: #0c111a;
+  color: var(--ink);
+  font-size: 15px;
+}
+.newsletter-form input::placeholder {
+  color: #929db0;
+}
+.newsletter-form .btn {
+  min-height: 52px;
+  font-size: 15px;
+}
+.newsletter-success {
+  color: #b8d7b5;
+  font-size: 15px;
+  margin-top: 22px;
+}
+.newsletter-art {
+  min-height: 290px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid #ffffff17;
+  background: #111722;
+  box-shadow: 0 25px 65px #0008;
+  transform: rotate(2deg);
+}
+.newsletter-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #080b12a8, transparent 90%),
+    linear-gradient(0deg, #080b1277, transparent 60%);
+}
+.newsletter-art img {
+  width: 100%;
+  height: 100%;
+  min-height: 290px;
+  object-fit: cover;
+}
+.newsletter-art > span {
+  position: absolute;
+  z-index: 1;
+  left: 24px;
+  bottom: 18px;
+  font:
+    italic 800 58px "Rajdhani",
+    sans-serif;
+  color: white;
+  text-shadow: 0 4px 22px #000c;
+}
+.newsletter-art > span > span {
+  color: var(--orange);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .car-card {
   border: 1px solid var(--line);
   border-radius: 7px;

@@ -123,6 +123,24 @@ textarea:focus {
   background:
     radial-gradient(ellipse at 85% 0%, #24213544, transparent 55%), #0c0e12;
 }
+.showcase-section.inventory {
+  background: transparent;
+}
+.promo-banner,
+.newsletter-section {
+  border-color: #ffffff12;
+}
+.newsletter-art {
+  box-shadow:
+    0 25px 65px #0008,
+    0 0 50px #ff734812;
+}
+.newest-section {
+  background: linear-gradient(180deg, #10131a, #0c0e12);
+}
+.popular-section {
+  background: radial-gradient(ellipse at 100% 30%, #22203344, transparent 60%);
+}
 .street-banner {
   position: relative;
   min-height: 430px;
@@ -1377,6 +1395,47 @@ td {
   font-size: clamp(36px, 4vw, 58px);
 }
 @media (max-width: 680px) {
+  .vehicle-rail {
+    grid-auto-columns: minmax(270px, 82vw);
+    gap: 14px;
+    margin-right: -6vw;
+    padding-right: 6vw;
+  }
+  .vehicle-rail .car-card {
+    border-radius: 15px;
+  }
+  .promo-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+  }
+  .promo-banner h2,
+  .newsletter-copy h2 {
+    font-size: 34px;
+  }
+  .newsletter-section {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .newsletter-form {
+    flex-direction: column;
+  }
+  .newsletter-form input,
+  .newsletter-form .btn {
+    width: 100%;
+  }
+  .newsletter-art {
+    min-height: 200px;
+    transform: none;
+  }
+  .newsletter-art img {
+    min-height: 200px;
+    max-height: 220px;
+  }
+  .showcase-section .section-heading {
+    margin-bottom: 18px;
+  }
   .hero h1 {
     font-size: clamp(48px, 12vw, 72px);
   }
