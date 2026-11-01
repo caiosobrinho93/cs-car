@@ -6,12 +6,13 @@ import {
   ArrowRight,
   Search,
   Heart,
-  CarFront,
-  Handshake,
-  Network,
   MessageCircle,
 } from "lucide-react";
+import type { CSSProperties } from "react";
 import Hero from "./hero";
+import GlassyCarousel, {
+  type GlassyCarouselItem,
+} from "./ui/glassy-coverflow-carousel";
 import {
   Header,
   Footer,
@@ -23,7 +24,13 @@ import {
   filterVehicles,
 } from "./shared";
 import { useVehicles } from "@/lib/store";
-import { Vehicle, whatsapp, isSampleVehicle } from "@/lib/data";
+import {
+  Vehicle,
+  isSampleVehicle,
+  money,
+  publicVehicleDescription,
+  whatsapp,
+} from "@/lib/data";
 import { isDemo } from "@/lib/supabase";
 export default function Website({ shop = false }: { shop?: boolean }) {
   const { vehicles, loading, error, refresh } = useVehicles();
@@ -44,35 +51,21 @@ export default function Website({ shop = false }: { shop?: boolean }) {
   }
   const list = filterVehicles(vehicles, filters, favorites);
   const hasSampleListings = isDemo || vehicles.some(isSampleVehicle);
-  const newest = [...vehicles]
+  const carouselVehicles = [...vehicles]
     .filter((vehicle) => vehicle.status === "available")
-    .sort((a, b) => b.year - a.year)
-    .slice(0, 8);
-  const popular = [...vehicles]
-    .filter((vehicle) => vehicle.status === "available")
-    .sort(
-      (a, b) =>
-        Number(b.featured) - Number(a.featured) ||
-        Number(favorites.includes(b.id)) - Number(favorites.includes(a.id)),
-    )
-    .slice(0, 8);
-  const visible = shop ? list : list.slice(0, 8);
-  const renderRail = (items: Vehicle[], railName: string) => (
-    <div className="vehicle-rail" aria-label={railName}>
-      {items.map((v) => (
-        <VehicleCard
-          key={`${railName}-${v.id}`}
-          v={v}
-          onOpen={() => setSelected(v)}
-          favorite={favorites.includes(v.id)}
-          onFavorite={() => favorite(v.id)}
-        />
-      ))}
-      {!items.length && (
-        <p className="rail-empty">Novos carros chegando em breve.</p>
-      )}
-    </div>
-  );
+    .sort((a, b) => Number(b.featured) - Number(a.featured) || b.year - a.year)
+    .slice(0, 30);
+  const carouselItems: (GlassyCarouselItem & { vehicle: Vehicle })[] =
+    carouselVehicles.map((vehicle) => ({
+      id: vehicle.id,
+      vehicle,
+      title: `${vehicle.brand} ${vehicle.model}`,
+      subtitle: `${vehicle.year} · ${vehicle.city}, ${vehicle.state} · ${money(vehicle.price)}`,
+      image: vehicle.images[0] || "/cars/hatch.webp",
+      accent: vehicle.featured ? "#ff744b" : "#7f91aa",
+      description: publicVehicleDescription(vehicle.description),
+    }));
+  const visible = list;
   return (
     <>
       <Header />
@@ -95,59 +88,6 @@ export default function Website({ shop = false }: { shop?: boolean }) {
             <div className="shop-decoration" aria-hidden="true">
               CS<span> /</span>
             </div>
-          </section>
-        )}
-        {!shop && (
-          <div
-            className="manifesto-strip"
-            aria-label="Veículos para cada caminho"
-          >
-            <div className="manifesto-track" aria-hidden="true">
-              {[0, 1].map((copy) => (
-                <div className="manifesto-group" key={copy}>
-                  {[
-                    "VEÍCULO",
-                    "MOTO",
-                    "CARRO NOVO",
-                    "SEMINOVO",
-                    "SUV",
-                    "HATCH",
-                    "SEDÃ",
-                    "PICAPE",
-                    "ESPORTIVO",
-                    "ELÉTRICO",
-                  ].map((word) => (
-                    <span className="manifesto-word" key={word}>
-                      {word}
-                      <span className="strip-star">✳</span>
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {!shop && (
-          <section
-            className="street-banner"
-            aria-label="A estrada para o seu próximo carro"
-          >
-            <div className="street-banner-image" />
-            <div className="street-banner-copy">
-              <p className="eyebrow">CS CAR / A ESTRADA É SUA</p>
-              <h2>
-                Escolha seu
-                <br />
-                <em>próximo movimento.</em>
-              </h2>
-              <p>
-                Carros encontrados por conexão, confiança e vontade de seguir em
-                frente.
-              </p>
-            </div>
-            <span className="street-mark">
-              SHIFT <b>→</b>
-            </span>
           </section>
         )}
         {shop ? (
@@ -269,238 +209,92 @@ export default function Website({ shop = false }: { shop?: boolean }) {
             )}
           </section>
         ) : (
-          <>
-            <section className="showcase-section section" id="selecao">
-              <div className="section-heading">
-                <div>
-                  <p className="eyebrow">01 / ESCOLHAS DA REDE</p>
-                  <h2>
-                    Carros em <em>destaque.</em>
-                  </h2>
-                </div>
-                <Link className="text-link" href="/loja">
-                  Ver todo o estoque <ArrowUpRight size={20} />
-                </Link>
-              </div>
-              <DemoNotice show={hasSampleListings} />
-              {renderRail(
-                list.filter((v) => v.featured).slice(0, 8).length
-                  ? list.filter((v) => v.featured).slice(0, 8)
-                  : list.slice(0, 8),
-                "Carros em destaque",
-              )}
-            </section>
-            <section className="promo-banner section">
-              <div>
-                <p className="eyebrow">CS CAR / CONEXÃO SOB MEDIDA</p>
-                <h2>
-                  O próximo carro
-                  <br />
-                  <em>está mais perto.</em>
-                </h2>
-                <p>
-                  Encontre opções da nossa rede e converse com a gente para
-                  descobrir o carro certo para você.
-                </p>
-              </div>
-              <Link className="btn orange" href="/loja">
-                Encontrar meu carro <ArrowUpRight size={18} />
-              </Link>
-            </section>
-            <section className="sell-banner" id="vender">
-              <div className="sell-image">
-                <img
-                  src="/sequence/desktop/075.webp"
-                  loading="lazy"
-                  alt="Carro esportivo em uma garagem iluminada"
-                />
-              </div>
-              <div className="sell-copy">
-                <p className="eyebrow">CS CAR / ANUNCIE COM A GENTE</p>
-                <h2>
-                  Seu carro.
-                  <br />O próximo sonho
-                  <br />
-                  <em>de alguém.</em>
-                </h2>
-                <p>
-                  Quer vender? A CS Car aproxima seu veículo de quem está
-                  procurando. Fale com a gente para anunciar.
-                </p>
-                <a
-                  href={whatsapp("Olá! Quero anunciar meu carro na CS Car.")}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn orange"
-                >
-                  Quero vender meu carro <ArrowUpRight size={18} />
-                </a>
-              </div>
-            </section>
-            <section className="showcase-section section newest-section">
-              <div className="section-heading">
-                <div>
-                  <p className="eyebrow">02 / ACABARAM DE CHEGAR</p>
-                  <h2>
-                    Recém-<em>chegados.</em>
-                  </h2>
-                </div>
-                <Link className="text-link" href="/loja">
-                  Explorar novidades <ArrowUpRight size={20} />
-                </Link>
-              </div>
-              {renderRail(newest, "Veículos recém-chegados")}
-            </section>
-            <section className="newsletter-section section">
-              <div className="newsletter-copy">
-                <p className="eyebrow">CS CAR / FIQUE POR DENTRO</p>
-                <h2>
-                  O próximo capítulo
-                  <br />
-                  <em>chega no seu e-mail.</em>
-                </h2>
-                <p>
-                  Receba novidades da rede e descubra quando chegar um carro que
-                  combina com você.
-                </p>
-                <Newsletter />
-              </div>
-              <div className="newsletter-art" aria-hidden="true">
-                <img src="/sequence/desktop/042.webp" alt="" loading="lazy" />
-                <span>
-                  CS<span>/</span>
-                </span>
-              </div>
-            </section>
-            <section className="showcase-section section popular-section">
-              <div className="section-heading">
-                <div>
-                  <p className="eyebrow">03 / ESCOLHAS QUE MOVEM</p>
-                  <h2>
-                    Os mais <em>procurados.</em>
-                  </h2>
-                </div>
-                <Link className="text-link" href="/loja">
-                  Ver todos <ArrowUpRight size={20} />
-                </Link>
-              </div>
-              {renderRail(popular, "Veículos mais procurados")}
-            </section>
-            <section className="connection section" id="conexao">
-              <div className="connection-title">
-                <p className="eyebrow">02 / A GENTE CONECTA</p>
-                <h2>
-                  O carro não precisa
-                  <br />
-                  estar na nossa garagem.
-                  <br />
-                  <em>
-                    Precisa fazer sentido
-                    <br />
-                    para você.
-                  </em>
-                </h2>
-              </div>
-              <div className="connection-steps">
-                {[
-                  {
-                    n: "01",
-                    title: "Você escolhe o caminho.",
-                    text: "Explore a loja ou conte qual carro está procurando. Marca, modelo, orçamento: a busca começa com você.",
-                    icon: CarFront,
-                  },
-                  {
-                    n: "02",
-                    title: "A gente encontra a conexão.",
-                    text: "Conectamos você aos veículos de proprietários e garagens da nossa rede, com atendimento próximo.",
-                    icon: Network,
-                  },
-                  {
-                    n: "03",
-                    title: "Conheça. Negocie. Siga em frente.",
-                    text: "Converse com a CS Car, combine uma visita e veja o carro de perto antes de decidir.",
-                    icon: Handshake,
-                  },
-                ].map((s) => (
-                  <article key={s.n}>
-                    <span className="step-num">{s.n}</span>
-                    <div>
-                      <s.icon size={23} />
-                      <h3>{s.title}</h3>
-                      <p>{s.text}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-            <section className="partner-banner section">
-              <div>
-                <p className="eyebrow">CS CAR / REDE DE PARCEIROS</p>
-                <h2>
-                  Sua garagem tem limites.
-                  <br />
-                  <em>Suas oportunidades, não.</em>
-                </h2>
-                <p>
-                  Encontre na rede o carro que seu cliente procura.
-                  <br />
-                  Conecte a venda. Receba a sua comissão.
-                </p>
-              </div>
-              <Link href="/rede" className="btn dark">
-                Conheça a rede de parceiros <ArrowUpRight size={19} />
-              </Link>
-            </section>
-          </>
-        )}
-        <section className="contact-strip">
-          <p>Não encontrou o carro que imaginou?</p>
-          <a
-            href={whatsapp("Olá, CS Car! Estou procurando um carro.")}
-            target="_blank"
-            rel="noreferrer"
+          <section
+            className="showcase-section section home-carousel-section"
+            id="selecao"
           >
-            Vamos encontrar juntos <MessageCircle size={20} />
-          </a>
-        </section>
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">01 / ESCOLHA SUA PRÓXIMA DIREÇÃO</p>
+                <h2>
+                  Encontre seu <em>próximo carro.</em>
+                </h2>
+                <p className="carousel-intro-copy">
+                  Explore até 30 veículos da rede. Selecione um carro para ver
+                  os detalhes.
+                </p>
+              </div>
+              <Link className="text-link" href="/loja">
+                Abrir filtros da loja <ArrowUpRight size={20} />
+              </Link>
+            </div>
+            <DemoNotice show={hasSampleListings} />
+            {loading ? (
+              <div className="home-carousel-status" role="status">
+                Buscando veículos da rede…
+              </div>
+            ) : error ? (
+              <div className="home-carousel-status" role="alert">
+                <p>{error}</p>
+                <button className="btn outline" onClick={refresh}>
+                  Tentar novamente
+                </button>
+              </div>
+            ) : carouselItems.length ? (
+              <GlassyCarousel
+                items={carouselItems}
+                initialIndex={0}
+                layout="website"
+                label="Seleção de veículos CS Car"
+                className="cs-car-catalog dark"
+                onItemOpen={(item) =>
+                  setSelected(
+                    carouselVehicles.find(
+                      (vehicle) => vehicle.id === item.id,
+                    ) ?? null,
+                  )
+                }
+                style={
+                  {
+                    "--carousel-background": "#0b0d11",
+                    "--color-background": "#0b0d11",
+                    "--color-foreground": "#f1f3f8",
+                    "--color-card": "#181d27",
+                    "--color-card-foreground": "#f1f3f8",
+                    "--color-muted-foreground": "#a6adbd",
+                    "--color-border": "#ffffff27",
+                    "--color-primary": "#ff744b",
+                    "--color-primary-foreground": "#ffffff",
+                    "--carousel-shadow-color": "#000000",
+                    "--carousel-font-body": "Rajdhani, DM Sans, sans-serif",
+                    "--carousel-font-display": "Rajdhani, DM Sans, sans-serif",
+                  } as CSSProperties
+                }
+              />
+            ) : (
+              <div className="home-carousel-status" role="status">
+                Novos carros chegando em breve.
+              </div>
+            )}
+          </section>
+        )}
+        {shop && (
+          <section className="contact-strip">
+            <p>Não encontrou o carro que imaginou?</p>
+            <a
+              href={whatsapp("Olá, CS Car! Estou procurando um carro.")}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Vamos encontrar juntos <MessageCircle size={20} />
+            </a>
+          </section>
+        )}
       </main>
       <Footer />
       {selected && (
         <VehicleDetails v={selected} onClose={() => setSelected(null)} />
       )}
     </>
-  );
-}
-
-function Newsletter() {
-  const [email, setEmail] = useState(""),
-    [submitted, setSubmitted] = useState(false);
-  function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!email.trim()) return;
-    setSubmitted(true);
-  }
-  return submitted ? (
-    <p className="newsletter-success" role="status">
-      Obrigado pelo interesse. A inscrição por e-mail será ativada em breve.
-    </p>
-  ) : (
-    <form className="newsletter-form" onSubmit={submit}>
-      <label className="sr-only" htmlFor="newsletter-email">
-        Seu e-mail
-      </label>
-      <input
-        id="newsletter-email"
-        type="email"
-        autoComplete="email"
-        placeholder="Seu melhor e-mail"
-        required
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-      />
-      <button className="btn orange" type="submit">
-        Quero receber <ArrowRight size={18} />
-      </button>
-    </form>
   );
 }

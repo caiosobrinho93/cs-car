@@ -512,6 +512,53 @@ select option {
 .saved-filter.selected {
   color: #ff9876;
 }
+.home-carousel-section {
+  overflow: hidden;
+  padding-top: clamp(54px, 8vw, 108px);
+  padding-bottom: clamp(70px, 9vw, 126px);
+  background:
+    radial-gradient(ellipse at 50% 65%, #29354a70, transparent 48%),
+    linear-gradient(180deg, #11141b 0%, #0b0d11 100%);
+}
+.carousel-intro-copy {
+  color: #a6adbd;
+  font-size: 15px;
+  margin-top: 14px;
+  line-height: 1.5;
+}
+.home-carousel-status {
+  display: grid;
+  min-height: 220px;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  border: 1px solid #ffffff20;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #171c26, #0d1016);
+  color: #c6cedc;
+  font-size: 16px;
+  text-align: center;
+}
+.home-carousel-status p {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .home-carousel-section {
+    padding: 48px 5% 78px;
+  }
+  .home-carousel-section .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .home-carousel-section .section-heading h2 {
+    max-width: 12ch;
+  }
+  .carousel-intro-copy {
+    max-width: 34ch;
+    margin-top: 10px;
+  }
+}
 .result-heading,
 .results-count {
   color: #a6adbd;
