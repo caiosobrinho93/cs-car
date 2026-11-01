@@ -17,7 +17,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { Vehicle, money, normalize, whatsapp } from "@/lib/data";
+import {
+  Vehicle,
+  money,
+  normalize,
+  whatsapp,
+  isSampleVehicle,
+  publicVehicleDescription,
+} from "@/lib/data";
 import { isDemo } from "@/lib/supabase";
 export function Brand() {
   return (
@@ -100,8 +107,8 @@ export function Footer() {
     </footer>
   );
 }
-export function DemoNotice() {
-  return isDemo ? (
+export function DemoNotice({ show = isDemo }: { show?: boolean }) {
+  return show ? (
     <div className="demo-notice">
       <span className="demo-pill">DEMONSTRAÇÃO</span> Veículos, preços e
       garagens fictícios. Fotos ilustrativas.
@@ -215,16 +222,18 @@ export function VehicleCard({
         >
           <img
             src={v.images[0] || "/cars/hatch.webp"}
-            alt={`${v.brand} ${v.model}${isDemo ? " — foto ilustrativa" : ""}`}
+            alt={`${v.brand} ${v.model}${isDemo || isSampleVehicle(v) ? " — foto ilustrativa" : ""}`}
             loading="lazy"
           />
         </button>
         <span className="car-badge">
-          {v.status === "reserved"
-            ? "RESERVADO"
-            : v.featured
-              ? "EM DESTAQUE"
-              : v.body.toUpperCase()}
+          {isSampleVehicle(v)
+            ? "DEMONSTRAÇÃO"
+            : v.status === "reserved"
+              ? "RESERVADO"
+              : v.featured
+                ? "EM DESTAQUE"
+                : v.body.toUpperCase()}
         </span>
         {onFavorite && (
           <button
@@ -339,10 +348,12 @@ export function filterVehicles(
   vehicles: Vehicle[],
   f: Filters,
   saved: string[] = [],
+  network = false,
 ) {
   return vehicles
     .filter(
       (v) =>
+        (!network || !isSampleVehicle(v)) &&
         (v.status === "available" || v.status === "reserved") &&
         normalize(`${v.brand} ${v.model} ${v.version}`).includes(
           normalize(f.query),
@@ -511,6 +522,8 @@ export function VehicleDetails({
 }) {
   const [photo, setPhoto] = useState(0),
     [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const sample = isSampleVehicle(v);
+  const description = publicVehicleDescription(v.description);
   return (
     <Modal title={`${v.brand} ${v.model}`} onClose={onClose} wide>
       <div className="details">
@@ -543,7 +556,7 @@ export function VehicleDetails({
             )}
           </div>
           <p className="photo-caption">
-            {isDemo
+            {isDemo || sample
               ? "Imagem ilustrativa · anúncio fictício"
               : "Fotos fornecidas pelo anunciante"}
           </p>
@@ -582,8 +595,8 @@ export function VehicleDetails({
           <div
             className={`description-wrap${descriptionExpanded ? " expanded" : ""}`}
           >
-            <p className="description">{v.description}</p>
-            {v.description.length > 140 && (
+            <p className="description">{description}</p>
+            {description.length > 140 && (
               <button
                 type="button"
                 className="description-toggle"
@@ -594,18 +607,25 @@ export function VehicleDetails({
               </button>
             )}
           </div>
-          <a
-            className="btn orange"
-            data-shimmer="true"
-            href={whatsapp(
-              `Olá, CS Car! Tenho interesse no ${v.brand} ${v.model} ${v.year}, anunciado por ${money(v.price)}.${isDemo ? " Estou vendo o site de demonstração." : ""}`,
-            )}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MessageCircle size={18} />
-            Conversar sobre este carro
-          </a>
+          {sample ? (
+            <div className="sample-unavailable" role="note">
+              Anúncio de demonstração. Este veículo não está disponível para
+              venda.
+            </div>
+          ) : (
+            <a
+              className="btn orange"
+              data-shimmer="true"
+              href={whatsapp(
+                `Olá, CS Car! Tenho interesse no ${v.brand} ${v.model} ${v.year}, anunciado por ${money(v.price)}.${isDemo ? " Estou vendo o site de demonstração." : ""}`,
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle size={18} />
+              Conversar sobre este carro
+            </a>
+          )}
           <small>Atendimento direto pela CS Car.</small>
         </div>
       </div>

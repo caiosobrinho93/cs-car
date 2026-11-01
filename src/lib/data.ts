@@ -22,6 +22,15 @@ export type Vehicle = {
   platform_fee?: number;
   garage_name?: string;
 };
+export const DEMO_VEHICLE_PREFIX = "DEMO_CS_CAR_2Y:";
+export function isSampleVehicle(vehicle: Pick<Vehicle, "description">) {
+  return vehicle.description.startsWith(DEMO_VEHICLE_PREFIX);
+}
+export function publicVehicleDescription(description: string) {
+  return description.startsWith(DEMO_VEHICLE_PREFIX)
+    ? description.slice(DEMO_VEHICLE_PREFIX.length).trim()
+    : description;
+}
 export type Garage = {
   id: string;
   name: string;

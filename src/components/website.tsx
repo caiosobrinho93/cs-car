@@ -23,7 +23,8 @@ import {
   filterVehicles,
 } from "./shared";
 import { useVehicles } from "@/lib/store";
-import { Vehicle, whatsapp } from "@/lib/data";
+import { Vehicle, whatsapp, isSampleVehicle } from "@/lib/data";
+import { isDemo } from "@/lib/supabase";
 export default function Website({ shop = false }: { shop?: boolean }) {
   const { vehicles, loading, error, refresh } = useVehicles();
   const [filters, setFilters] = useState(emptyFilters),
@@ -42,6 +43,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
     localStorage.setItem("cs-favorites", JSON.stringify(next));
   }
   const list = filterVehicles(vehicles, filters, favorites);
+  const hasSampleListings = isDemo || vehicles.some(isSampleVehicle);
   const newest = [...vehicles]
     .filter((vehicle) => vehicle.status === "available")
     .sort((a, b) => b.year - a.year)
@@ -223,7 +225,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 </select>
               </label>
             </div>
-            <DemoNotice />
+            <DemoNotice show={hasSampleListings} />
             {error ? (
               <div className="empty">
                 <p>{error}</p>
@@ -280,7 +282,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                   Ver todo o estoque <ArrowUpRight size={20} />
                 </Link>
               </div>
-              <DemoNotice />
+              <DemoNotice show={hasSampleListings} />
               {renderRail(
                 list.filter((v) => v.featured).slice(0, 8).length
                   ? list.filter((v) => v.featured).slice(0, 8)

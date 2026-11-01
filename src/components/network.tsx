@@ -45,6 +45,7 @@ import {
   VEHICLE_COLORS,
   BR_STATES,
   CITIES_BY_STATE,
+  isSampleVehicle,
 } from "@/lib/data";
 const statusLabel: Record<string, string> = {
   new: "Nova indicação",
@@ -77,6 +78,9 @@ export default function Network() {
     [toast, setToast] = useState(""),
     [busy, setBusy] = useState(false);
   const { vehicles, loading, error, refresh } = useVehicles(true);
+  const networkVehicles = vehicles.filter(
+    (vehicle) => !isSampleVehicle(vehicle),
+  );
   function notify(message: string) {
     setToast(message);
   }
@@ -146,7 +150,7 @@ export default function Network() {
     const t = setTimeout(() => setToast(""), 7000);
     return () => clearTimeout(t);
   }, [toast]);
-  const own = vehicles.filter((v) => v.garage_id === garage?.id);
+  const own = networkVehicles.filter((v) => v.garage_id === garage?.id);
   const mine = referrals.filter(
     (r) =>
       r.broker_garage_id === garage?.id ||
@@ -304,7 +308,10 @@ export default function Network() {
               {String(label)}
               {id === "network" && (
                 <span>
-                  {vehicles.filter((v) => v.status === "available").length}
+                  {
+                    networkVehicles.filter((v) => v.status === "available")
+                      .length
+                  }
                 </span>
               )}
             </button>
@@ -426,8 +433,9 @@ export default function Network() {
                 {[
                   {
                     label: "Veículos na rede",
-                    value: vehicles.filter((v) => v.status === "available")
-                      .length,
+                    value: networkVehicles.filter(
+                      (v) => v.status === "available",
+                    ).length,
                     icon: CarFront,
                     note: "Oportunidades disponíveis",
                   },
@@ -489,7 +497,9 @@ export default function Network() {
                 {vehicles
                   .filter(
                     (v) =>
-                      v.garage_id !== garage?.id && v.status === "available",
+                      !isSampleVehicle(v) &&
+                      v.garage_id !== garage?.id &&
+                      v.status === "available",
                   )
                   .slice(0, 3)
                   .map((v) => (
@@ -507,7 +517,7 @@ export default function Network() {
           {tab === "network" && (
             <>
               <FilterBar
-                vehicles={vehicles}
+                vehicles={networkVehicles}
                 value={filters}
                 onChange={setFilters}
                 network
@@ -538,10 +548,11 @@ export default function Network() {
                 </select>
               </div>
               <p className="results-count">
-                {filterVehicles(vehicles, filters).length} veículos encontrados
+                {filterVehicles(networkVehicles, filters, [], true).length}{" "}
+                veículos encontrados
               </p>
               <div className="car-grid">
-                {filterVehicles(vehicles, filters).map((v) => (
+                {filterVehicles(networkVehicles, filters, [], true).map((v) => (
                   <VehicleCard
                     key={v.id}
                     v={v}
@@ -557,7 +568,7 @@ export default function Network() {
                   />
                 ))}
               </div>
-              {!filterVehicles(vehicles, filters).length && (
+              {!filterVehicles(networkVehicles, filters, [], true).length && (
                 <div className="empty">
                   <Search />
                   <h3>Nenhum veículo com esses filtros.</h3>
