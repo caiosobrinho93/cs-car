@@ -68,12 +68,33 @@ export default function Website({ shop = false }: { shop?: boolean }) {
           </section>
         )}
         {!shop && (
-          <div className="manifesto-strip">
-            <span>VEÍCULO</span>
-            <span className="strip-star">✳</span>
-            <span>MOTO</span>
-            <span className="strip-star">✳</span>
-            <span>CARRO NOVO</span>
+          <div
+            className="manifesto-strip"
+            aria-label="Veículos para cada caminho"
+          >
+            <div className="manifesto-track" aria-hidden="true">
+              {[0, 1].map((copy) => (
+                <div className="manifesto-group" key={copy}>
+                  {[
+                    "VEÍCULO",
+                    "MOTO",
+                    "CARRO NOVO",
+                    "SEMINOVO",
+                    "SUV",
+                    "HATCH",
+                    "SEDÃ",
+                    "PICAPE",
+                    "ESPORTIVO",
+                    "ELÉTRICO",
+                  ].map((word) => (
+                    <span className="manifesto-word" key={word}>
+                      {word}
+                      <span className="strip-star">✳</span>
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         )}
         {!shop && (

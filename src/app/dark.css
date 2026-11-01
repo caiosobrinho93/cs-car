@@ -98,7 +98,7 @@ textarea:focus {
   isolation: isolate;
   background: linear-gradient(115deg, #111722, #1c1720, #101923, #111722);
   background-size: 260% 260%;
-  animation: manifesto-drift 16s ease-in-out infinite alternate;
+  animation: none;
   border-top: 1px solid #ffffff0c;
   border-bottom: 1px solid var(--line);
   color: #d9dce4;
@@ -111,7 +111,7 @@ textarea:focus {
     background-position: 100% 50%;
   }
 }
-.manifesto-strip > span:not(.strip-star) {
+.manifesto-strip .manifesto-word {
   color: #f0f3fa;
   font:
     600 13px "Rajdhani",
@@ -573,6 +573,9 @@ select option {
 .partner-banner h2 em {
   color: #8997b0;
 }
+.connection-title {
+  text-align: center;
+}
 .connection-steps article {
   border-color: #343c4a;
 }
@@ -973,12 +976,12 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
 }
 .detail-specs p {
   padding: 13px 0;
-  font-size: 12px;
+  font-size: 15px;
 }
 .detail-features {
   gap: 12px;
   margin-top: 18px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .detail-features span {
   padding: 9px 10px;
@@ -995,6 +998,11 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
 .description,
 .detail-specs p > span {
   color: #aab7ce;
+}
+.detail-copy > p,
+.description {
+  font-size: 15px;
+  line-height: 1.5;
 }
 .detail-copy > small,
 .photo-caption {
@@ -1276,7 +1284,8 @@ td {
       0 1px 0 #ffffff15 inset,
       0 16px 30px -10px #0009,
       0 35px 55px -20px #000c,
-      0 0 35px #798aff0b;
+      0 0 35px #798aff0b,
+      0 0 34px #ff744b24;
   }
   .car-card:hover::after {
     opacity: 1;

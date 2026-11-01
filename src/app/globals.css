@@ -19,6 +19,8 @@ body {
   color: var(--ink);
   font-family: "DM Sans", Arial, sans-serif;
   font-size: 14px;
+  line-height: 1.45;
+  line-height: 1.45;
 }
 main {
   padding-top: 90px;
@@ -374,19 +376,41 @@ select {
 }
 .manifesto-strip {
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  gap: 25px;
-  padding: 24px 3%;
+  padding: 24px 0;
   background: #e9ebe2;
   font-size: 14px;
   font-weight: 500;
   overflow: hidden;
+}
+.manifesto-track,
+.manifesto-group,
+.manifesto-word {
+  display: flex;
+  align-items: center;
+}
+.manifesto-track {
+  width: max-content;
+  animation: manifesto-marquee 36s linear infinite;
+}
+.manifesto-group,
+.manifesto-word {
+  gap: clamp(28px, 4vw, 64px);
+}
+.manifesto-group {
+  flex: none;
+  padding-right: clamp(28px, 4vw, 64px);
+}
+.manifesto-word {
   white-space: nowrap;
 }
-.manifesto-strip > span:last-child {
-  font-size: 9px;
-  letter-spacing: 0.14em;
+.manifesto-strip:hover .manifesto-track {
+  animation-play-state: paused;
+}
+@keyframes manifesto-marquee {
+  to {
+    transform: translateX(-50%);
+  }
 }
 .strip-star {
   color: var(--orange);
@@ -558,6 +582,15 @@ select {
 .car-card:hover {
   box-shadow: 0 12px 28px #1f281312;
 }
+.car-card:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+.car-card button,
+.car-card a {
+  position: relative;
+  z-index: 5;
+}
 .car-photo {
   aspect-ratio: 1.6;
   position: relative;
@@ -607,6 +640,7 @@ select {
 }
 .car-info {
   padding: 20px;
+  margin-top: -3px;
 }
 .car-title {
   display: flex;
@@ -719,6 +753,9 @@ select {
   gap: 11%;
   padding-top: 100px;
   padding-bottom: 100px;
+}
+.connection-title {
+  text-align: center;
 }
 .connection-title h2 {
   font-size: clamp(30px, 3.7vw, 54px);
@@ -987,7 +1024,7 @@ footer {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-top: 25px;
-  font-size: 11px;
+  font-size: 14px;
 }
 .detail-features span {
   display: flex;
@@ -1003,8 +1040,8 @@ footer {
 }
 .detail-copy > p {
   color: #777e6d;
-  font-size: 12px;
-  line-height: 1.8;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .detail-price {
   font-size: 32px;
@@ -1017,7 +1054,7 @@ footer {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 11px;
+  font-size: 15px;
   border-bottom: 1px solid var(--line);
   padding: 11px 0;
 }
@@ -1972,12 +2009,7 @@ td {
   }
   .manifesto-strip {
     padding: 20px 6%;
-    justify-content: start;
     font-size: 12px;
-    gap: 25px;
-  }
-  .manifesto-strip > span:nth-child(n + 4) {
-    display: none;
   }
   .strip-star {
     font-size: 20px;

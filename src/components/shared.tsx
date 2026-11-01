@@ -192,6 +192,17 @@ export function VehicleCard({
   return (
     <article
       className="car-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver ${v.brand} ${v.model}, ${money(v.price)}`}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
       onPointerMove={tilt}
       onPointerLeave={resetTilt}
       onPointerCancel={resetTilt}
@@ -220,7 +231,10 @@ export function VehicleCard({
             className={"favorite " + (favorite ? "active" : "")}
             aria-label={`${favorite ? "Remover" : "Salvar"} ${v.model} nos favoritos`}
             aria-pressed={favorite}
-            onClick={onFavorite}
+            onClick={(event) => {
+              event.stopPropagation();
+              onFavorite();
+            }}
           >
             <Heart size={17} fill={favorite ? "currentColor" : "none"} />
           </button>
@@ -228,7 +242,12 @@ export function VehicleCard({
       </div>
       <div className="car-info">
         <div className="car-title">
-          <button onClick={onOpen}>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen();
+            }}
+          >
             <span>{v.brand}</span>
             <h3>{v.model}</h3>
           </button>
@@ -249,7 +268,10 @@ export function VehicleCard({
         <div className="car-price">
           <strong>{money(v.price)}</strong>
           <button
-            onClick={onOpen}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen();
+            }}
             className="round-arrow"
             aria-label={`Detalhes de ${v.model}`}
           >
@@ -271,7 +293,13 @@ export function VehicleCard({
             </small>
             <span className="garage-name">{v.garage_name}</span>
             {onRefer && (
-              <button onClick={onRefer} className="btn dark small">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRefer();
+                }}
+                className="btn dark small"
+              >
                 Tenho um comprador <ArrowUpRight size={15} />
               </button>
             )}
