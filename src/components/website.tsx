@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -213,6 +213,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
             className="showcase-section section home-carousel-section"
             id="selecao"
           >
+            <CarouselVideoBackground />
             <div className="section-heading">
               <div>
                 <p className="eyebrow">01 / ESCOLHA SUA PRÓXIMA DIREÇÃO</p>
@@ -296,5 +297,69 @@ export default function Website({ shop = false }: { shop?: boolean }) {
         <VehicleDetails v={selected} onClose={() => setSelected(null)} />
       )}
     </>
+  );
+}
+
+function CarouselVideoBackground() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const video = container?.querySelector("video");
+    const source = video?.querySelector("source");
+    if (!container || !video || !source) return;
+    const activeVideo = video as HTMLVideoElement;
+    const activeSource = source as HTMLSourceElement;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let isVisible = false;
+
+    function syncPlayback() {
+      if (reducedMotion.matches || !isVisible) {
+        activeVideo.pause();
+        return;
+      }
+
+      if (activeSource.dataset.loaded !== "true") {
+        activeSource.src = activeSource.dataset.src || "";
+        activeSource.dataset.loaded = "true";
+        activeVideo.load();
+      }
+      void activeVideo.play().catch(() => {});
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        syncPlayback();
+      },
+      { rootMargin: "220px 0px" },
+    );
+
+    observer.observe(container);
+    reducedMotion.addEventListener("change", syncPlayback);
+    return () => {
+      observer.disconnect();
+      reducedMotion.removeEventListener("change", syncPlayback);
+      activeVideo.pause();
+    };
+  }, []);
+
+  return (
+    <div className="home-carousel-video" ref={containerRef} aria-hidden="true">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster="/videos/cs-car-carousel-poster.webp"
+      >
+        <source
+          data-src="/videos/cs-car-carousel-background.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
   );
 }

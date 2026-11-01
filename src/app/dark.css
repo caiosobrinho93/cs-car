@@ -513,12 +513,48 @@ select option {
   color: #ff9876;
 }
 .home-carousel-section {
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
   padding-top: clamp(54px, 8vw, 108px);
   padding-bottom: clamp(70px, 9vw, 126px);
+  background: #090b0f;
+}
+.home-carousel-video {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 65%, #29354a70, transparent 48%),
-    linear-gradient(180deg, #11141b 0%, #0b0d11 100%);
+    radial-gradient(ellipse at 50% 45%, #29354a70, transparent 62%), #090b0f;
+}
+.home-carousel-video::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(
+      180deg,
+      #090b0fa8 0%,
+      #090b0f9c 38%,
+      #090b0fd9 78%,
+      #090b0ff5 100%
+    ),
+    radial-gradient(ellipse at 50% 42%, transparent 0%, #090b0f70 100%);
+}
+.home-carousel-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.42;
+  filter: brightness(0.72) saturate(0.72);
+}
+.home-carousel-section > :not(.home-carousel-video) {
+  position: relative;
+  z-index: 1;
 }
 .carousel-intro-copy {
   color: #a6adbd;

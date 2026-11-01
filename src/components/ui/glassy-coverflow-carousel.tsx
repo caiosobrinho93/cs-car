@@ -29,7 +29,7 @@ const csCarCatalogStyles = `
     height: min(82svh, 860px);
     max-height: none;
     padding-bottom: 20px;
-    background: radial-gradient(ellipse at 50% 48%, #1b2433 0%, #0d1016 63%, #090b0f 100%);
+    background: transparent;
   }
   .gc-shell.cs-car-catalog .gc-stage { grid-row: 1; }
   .gc-shell.cs-car-catalog .gc-bottom { grid-row: 2; }
