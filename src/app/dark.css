@@ -1399,6 +1399,8 @@ td {
 }
 @media (max-width: 680px) {
   .header {
+    position: relative;
+    z-index: 40;
     height: 76px;
     padding: 0 5%;
   }
@@ -1435,13 +1437,23 @@ td {
     border-color: #ff734877;
   }
   .nav-backdrop {
-    display: none;
+    display: block;
+    position: fixed;
+    z-index: 29;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    padding: 0;
+    background: #03060bd9;
+    backdrop-filter: blur(8px);
   }
   .nav {
-    background: #111620;
+    display: none;
     position: fixed;
     z-index: 30;
     inset: 0;
+    flex-direction: column;
+    align-items: stretch;
     padding: 118px 8% 40px;
     gap: 10px;
     border: 1px solid #ffffff1f;
@@ -1453,6 +1465,10 @@ td {
     transform-origin: top center;
   }
   .nav.open {
+    display: flex;
+    background:
+      radial-gradient(circle at 85% 15%, #263a54 0, transparent 30%),
+      linear-gradient(145deg, #111a28 0%, #0d121c 52%, #080b12 100%);
     animation: mobile-menu-in 0.22s ease-out both;
   }
   .nav a {
