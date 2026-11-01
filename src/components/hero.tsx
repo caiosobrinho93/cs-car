@@ -1,28 +1,76 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 // Six virtual copies of frame 100 extend the scroll without extra image files.
 const FINAL_HOLD_FRAMES = 6;
 const FRAME_TRANSITIONS = 99;
+const INTRO_FRAMES = 8;
+const INTRO_MIN_DURATION = 1450;
 export default function Hero() {
   const host = useRef<HTMLElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
+  const [introMounted, setIntroMounted] = useState(true),
+    [introVisible, setIntroVisible] = useState(true);
   useEffect(() => {
     const el = host.current!,
       c = canvas.current!,
       ctx = c.getContext("2d", { alpha: false });
-    if (!ctx) return;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!ctx) {
+      setIntroVisible(false);
+      setIntroMounted(false);
+      return;
+    }
     let disposed = false,
       target = 0,
       active = 0,
       last = -1,
       queue: number[] = [],
-      cleanup = () => {};
+      cleanup = () => {},
+      refreshScroll = () => {},
+      introFinishScheduled = false,
+      introExitTimer: number | undefined,
+      introFinishTimer: number | undefined,
+      introSafetyTimer: number | undefined;
+    const introStarted = performance.now(),
+      reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches,
+      introMobile = matchMedia("(max-width: 680px)").matches,
+      initialFrames = new Set<number>(),
+      originalHtmlOverflow = document.documentElement.style.overflow,
+      originalBodyOverflow = document.body.style.overflow;
     const cache = new Map<number, HTMLImageElement>(),
       pending = new Set<number>(),
       failed = new Set<number>();
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    function releaseIntro() {
+      if (disposed || introFinishScheduled) return;
+      introFinishScheduled = true;
+      const minDuration = reducedMotion ? 650 : INTRO_MIN_DURATION;
+      const delay = Math.max(
+        0,
+        minDuration - (performance.now() - introStarted),
+      );
+      introFinishTimer = window.setTimeout(() => {
+        if (disposed) return;
+        setIntroVisible(false);
+        introExitTimer = window.setTimeout(
+          () => {
+            setIntroMounted(false);
+            document.documentElement.style.overflow = originalHtmlOverflow;
+            document.body.style.overflow = originalBodyOverflow;
+            requestAnimationFrame(refreshScroll);
+          },
+          reducedMotion ? 20 : introMobile ? 650 : 850,
+        );
+      }, delay);
+    }
+    function markInitialFrameReady(n: number) {
+      if (n >= INTRO_FRAMES || initialFrames.has(n)) return;
+      initialFrames.add(n);
+      if (initialFrames.size === INTRO_FRAMES) releaseIntro();
+    }
+    introSafetyTimer = window.setTimeout(releaseIntro, 8000);
     const mobile = innerWidth < 760,
       limit = mobile ? 20 : 30;
     function paint() {
@@ -43,33 +91,45 @@ export default function Hero() {
       el.dataset.ready = "true";
     }
     function pump() {
-      while (active < 4 && queue.length && !disposed) {
+      while (
+        active < (target < INTRO_FRAMES ? 6 : 4) &&
+        queue.length &&
+        !disposed
+      ) {
         const n = queue.shift()!;
         if (cache.has(n) || pending.has(n) || failed.has(n)) continue;
         active++;
         pending.add(n);
         const img = new Image();
         img.decoding = "async";
+        img.fetchPriority = n < INTRO_FRAMES ? "high" : "auto";
         const finish = () => {
           active--;
           pending.delete(n);
           pump();
         };
         img.onload = () => {
-          if (!disposed) {
-            cache.set(n, img);
-            if (cache.size > limit) {
-              const far = [...cache.keys()].sort(
-                (a, b) => Math.abs(b - target) - Math.abs(a - target),
-              )[0];
-              cache.delete(far);
-            }
-            paint();
-          }
-          finish();
+          void img
+            .decode()
+            .catch(() => {})
+            .then(() => {
+              if (!disposed) {
+                cache.set(n, img);
+                if (cache.size > limit) {
+                  const far = [...cache.keys()].sort(
+                    (a, b) => Math.abs(b - target) - Math.abs(a - target),
+                  )[0];
+                  cache.delete(far);
+                }
+                markInitialFrameReady(n);
+                paint();
+              }
+              finish();
+            });
         };
         img.onerror = () => {
           failed.add(n);
+          markInitialFrameReady(n);
           finish();
         };
         img.src = `/sequence/${mobile ? "mobile" : "desktop"}/${String(n + 1).padStart(3, "0")}.webp`;
@@ -102,52 +162,66 @@ export default function Hero() {
     ro.observe(c);
     resize();
     seek(0);
-    Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
-      ([{ gsap }, { ScrollTrigger }]) => {
-        if (disposed) return;
-        gsap.registerPlugin(ScrollTrigger);
-        const state = { p: 0 };
-        const tween = gsap.to(state, {
-          p: 1,
-          ease: "none",
-          onUpdate: () =>
-            seek(
-              Math.min(
-                1,
-                (state.p * (FRAME_TRANSITIONS + FINAL_HOLD_FRAMES)) /
-                  FRAME_TRANSITIONS,
+    if (!reducedMotion) {
+      Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
+        ([{ gsap }, { ScrollTrigger }]) => {
+          if (disposed) return;
+          gsap.registerPlugin(ScrollTrigger);
+          const state = { p: 0 };
+          const tween = gsap.to(state, {
+            p: 1,
+            ease: "none",
+            onUpdate: () =>
+              seek(
+                Math.min(
+                  1,
+                  (state.p * (FRAME_TRANSITIONS + FINAL_HOLD_FRAMES)) /
+                    FRAME_TRANSITIONS,
+                ),
               ),
-            ),
-          scrollTrigger: {
-            trigger: el,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.3,
-          },
-        });
-        cleanup = () => {
-          tween.scrollTrigger?.kill();
-          tween.kill();
-        };
-        ScrollTrigger.refresh();
-      },
-    );
+            scrollTrigger: {
+              trigger: el,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: 0.3,
+            },
+          });
+          cleanup = () => {
+            tween.scrollTrigger?.kill();
+            tween.kill();
+          };
+          refreshScroll = () => ScrollTrigger.refresh();
+          ScrollTrigger.refresh();
+        },
+      );
+    }
     return () => {
       disposed = true;
       ro.disconnect();
       cleanup();
       cache.clear();
+      window.clearTimeout(introFinishTimer);
+      window.clearTimeout(introSafetyTimer);
+      window.clearTimeout(introExitTimer);
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = originalBodyOverflow;
     };
   }, []);
   return (
     <section ref={host} className="hero" data-frame="1">
       <div className="hero-stage">
-        <img
-          className="hero-poster"
-          src="/sequence/desktop/001.webp"
-          alt="Carro esportivo em uma garagem iluminada"
-          fetchPriority="high"
-        />
+        <picture className="hero-poster-frame">
+          <source
+            media="(max-width: 759px)"
+            srcSet="/sequence/mobile/001.webp"
+          />
+          <img
+            className="hero-poster"
+            src="/sequence/desktop/001.webp"
+            alt="Carro esportivo em uma garagem iluminada"
+            fetchPriority="high"
+          />
+        </picture>
         <canvas ref={canvas} aria-hidden="true" />
         <div className="hero-shade" />
         <div className="hero-kicker">
@@ -185,6 +259,23 @@ export default function Hero() {
           </a>
         </div>
       </div>
+      {introMounted && (
+        <div
+          className={`site-intro${introVisible ? " is-active" : " is-exiting"}`}
+          role="status"
+          aria-label="CS Car"
+        >
+          <div className="site-intro-runner">
+            <span className="site-intro-smoke" aria-hidden="true" />
+            <img
+              className="site-intro-logo"
+              src="/brand/cs-car-logo.png"
+              alt="CS Car"
+              fetchPriority="high"
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
