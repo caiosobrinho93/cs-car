@@ -58,7 +58,8 @@ const csCarCatalogStyles = `
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    opacity: 0.88;
+    opacity: 1;
+    filter: drop-shadow(0 0 2px #5cd7e955);
   }
   .gc-shell.cs-car-catalog .gc-card[data-active] {
     box-shadow: inset 0 0 16px #49c9dc0c, 0 22px 42px #0009;
@@ -78,7 +79,7 @@ const csCarCatalogStyles = `
   }
   .gc-shell.cs-car-catalog .gc-browser-bar { display: none; }
   .gc-shell.cs-car-catalog .gc-poster {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 0.82;
     width: 100%;
     border-radius: 0;
     background: #10131a;
@@ -86,15 +87,22 @@ const csCarCatalogStyles = `
   .gc-shell.cs-car-catalog .gc-poster > img { object-fit: cover; }
   .gc-shell.cs-car-catalog .gc-card-info {
     position: relative;
-    min-height: 104px;
-    padding: 14px 14px 16px;
-    align-items: flex-start;
-    background: linear-gradient(112deg, #292b30 0%, #293b4d 53%, #302740 100%);
+    min-height: 130px;
+    padding: 14px 16px 16px;
+    align-items: stretch;
+    background: linear-gradient(112deg, #383a40 0%, #36516b 50%, #392950 100%);
     clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
   }
-  .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 16px; line-height: 1.2; }
-  .gc-shell.cs-car-catalog .gc-card-info > span > span { font-size: 13px; line-height: 1.3; }
-  .gc-shell.cs-car-catalog .gc-card-info > svg { margin-top: 8px; }
+  .gc-shell.cs-car-catalog .gc-card-info .gc-card-copy {
+    gap: 5px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 20px; line-height: 1.15; }
+  .gc-shell.cs-car-catalog .gc-card-year { font-size: 13px; line-height: 1.2; color: #f0f2f6; }
+  .gc-shell.cs-car-catalog .gc-card-location { font-size: 12px; line-height: 1.2; color: #e1e5ed; }
+  .gc-shell.cs-car-catalog .gc-card-price { font-size: 19px; line-height: 1.1; margin-top: 3px; color: #fff; }
+  .gc-shell.cs-car-catalog .gc-card-info > svg { align-self: flex-end; margin-bottom: 2px; }
   .gc-shell.cs-car-catalog .gc-active-info p { font-size: 14px; }
   .gc-shell.cs-car-catalog .gc-position,
   .gc-shell.cs-car-catalog .gc-hint { font-size: 12px; }
@@ -107,9 +115,11 @@ const csCarCatalogStyles = `
     .gc-shell.cs-car-catalog .gc-card { border-radius: 15px; }
     .gc-shell.cs-car-catalog .gc-card::before { border-radius: 12px; }
     .gc-shell.cs-car-catalog .gc-card-rarity { height: 30px; font-size: 11px; }
-    .gc-shell.cs-car-catalog .gc-card-info { min-height: 92px; padding: 12px 10px 14px; }
-    .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 15px; }
-    .gc-shell.cs-car-catalog .gc-card-info > span > span { font-size: 12px; }
+    .gc-shell.cs-car-catalog .gc-card-info { min-height: 122px; padding: 12px 12px 14px; }
+    .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 18px; }
+    .gc-shell.cs-car-catalog .gc-card-year { font-size: 12px; }
+    .gc-shell.cs-car-catalog .gc-card-location { font-size: 12px; }
+    .gc-shell.cs-car-catalog .gc-card-price { font-size: 18px; }
     .gc-shell.cs-car-catalog .gc-active-info p { font-size: 13px; }
   }
 `;
@@ -118,6 +128,9 @@ export interface GlassyCarouselItem {
   id: string;
   title: string;
   subtitle: string;
+  year?: string;
+  location?: string;
+  price?: string;
   image: string;
   accent?: string;
   description?: string;
@@ -147,6 +160,8 @@ export interface GlassyCarouselProps {
   initialIndex?: number;
   /** website uses wide screenshots and links; poster uses 2:3 artwork. Default website. */
   layout?: "website" | "poster";
+  /** Card artwork orientation. Default landscape. */
+  cardOrientation?: "landscape" | "portrait";
   /** Autoplay delay in milliseconds. Default 6000; minimum 2500. */
   interval?: number;
   /** Timed advance. Default false; updates when changed. Pauses for hover, card focus, dragging, open preview, hidden page and OS reduced motion. */
@@ -199,6 +214,7 @@ export default function GlassyCarousel({
   items,
   initialIndex = 0,
   layout = "website",
+  cardOrientation = "landscape",
   interval = 6000,
   autoPlay = false,
   label = "Media collection",
@@ -234,13 +250,19 @@ export default function GlassyCarousel({
   const activeIndex = items.length ? wrap(index, items.length) : 0;
   const active = items[activeIndex];
   const cardWidth =
-    layout === "poster"
+    cardOrientation === "portrait"
       ? Math.min(
-          270,
-          stageSize.width * 0.58,
-          Math.max(100, (stageSize.height - 28) / 1.5),
+          360,
+          stageSize.width * 0.72,
+          Math.max(220, (stageSize.height - 166) * 0.8),
         )
-      : Math.min(420, stageSize.width * 0.72);
+      : layout === "poster"
+        ? Math.min(
+            270,
+            stageSize.width * 0.58,
+            Math.max(100, (stageSize.height - 28) / 1.5),
+          )
+        : Math.min(420, stageSize.width * 0.72);
   // Coverflow geometry adapted from educalvolpz/coverflow-carousel on 21st.
   // Keep artwork opaque; depth and scale establish the hierarchy.
   const step = cardWidth * 0.78;
@@ -537,9 +559,20 @@ export default function GlassyCarousel({
               </span>
               {layout === "website" && (
                 <span className="gc-card-info">
-                  <span>
+                  <span className="gc-card-copy">
                     <strong>{item.title}</strong>
-                    <span>{item.subtitle}</span>
+                    {item.year && (
+                      <span className="gc-card-year">{item.year}</span>
+                    )}
+                    {item.location && (
+                      <span className="gc-card-location">{item.location}</span>
+                    )}
+                    {item.price && (
+                      <b className="gc-card-price">{item.price}</b>
+                    )}
+                    {!item.year && !item.location && !item.price && (
+                      <span>{item.subtitle}</span>
+                    )}
                   </span>
                   <ArrowUpRight size={20} aria-hidden="true" />
                 </span>

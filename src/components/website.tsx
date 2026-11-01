@@ -61,6 +61,9 @@ export default function Website({ shop = false }: { shop?: boolean }) {
       vehicle,
       title: `${vehicle.brand} ${vehicle.model}`,
       subtitle: `${vehicle.year} · ${vehicle.city}, ${vehicle.state} · ${money(vehicle.price)}`,
+      year: String(vehicle.year),
+      location: `${vehicle.city}, ${vehicle.state}`,
+      price: money(vehicle.price),
       image: vehicle.images[0] || "/cars/hatch.webp",
       accent: vehicle.featured ? "#ff744b" : "#7f91aa",
       description: publicVehicleDescription(vehicle.description),
@@ -246,6 +249,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 items={carouselItems}
                 initialIndex={0}
                 layout="website"
+                cardOrientation="portrait"
                 label="Seleção de veículos CS Car"
                 className="cs-car-catalog dark"
                 onItemOpen={(item) =>
