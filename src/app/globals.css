@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap");
 :root {
   --ink: #20221f;
   --muted: #777b74;
@@ -583,6 +583,17 @@ select {
 }
 .showcase-section {
   overflow: hidden;
+}
+.showcase-section.section.home-carousel-section {
+  padding-left: 0;
+  padding-right: 0;
+}
+.home-carousel-section > .section-heading,
+.home-carousel-section > .demo-notice,
+.home-carousel-section > .home-carousel-status {
+  width: min(1440px, calc(100% - clamp(36px, 8vw, 160px)));
+  margin-left: auto;
+  margin-right: auto;
 }
 .vehicle-rail {
   display: grid;

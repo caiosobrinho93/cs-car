@@ -60,6 +60,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
       id: vehicle.id,
       vehicle,
       title: `${vehicle.brand} ${vehicle.model}`,
+      brand: vehicle.brand,
       subtitle: `${vehicle.year} · ${vehicle.city}, ${vehicle.state} · ${money(vehicle.price)}`,
       year: String(vehicle.year),
       location: `${vehicle.city}, ${vehicle.state}`,
@@ -250,6 +251,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 initialIndex={0}
                 layout="website"
                 cardOrientation="portrait"
+                compactControls
                 label="Seleção de veículos CS Car"
                 className="cs-car-catalog dark"
                 onItemOpen={(item) =>

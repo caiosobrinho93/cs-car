@@ -26,7 +26,7 @@ const csCarCatalogStyles = `
   .gc-shell.cs-car-catalog {
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: 540px;
-    height: min(82svh, 860px);
+    height: min(calc(100svh + 2px), 920px);
     max-height: none;
     padding-bottom: 20px;
     background: transparent;
@@ -34,99 +34,240 @@ const csCarCatalogStyles = `
   .gc-shell.cs-car-catalog .gc-atmosphere {
     background: radial-gradient(ellipse at 50% 44%, #0b0d1110, transparent 68%);
   }
-  .gc-shell.cs-car-catalog .gc-stage { grid-row: 1; }
-  .gc-shell.cs-car-catalog .gc-bottom { grid-row: 2; }
+  .gc-shell.cs-car-catalog .gc-stage {
+    grid-row: 1;
+    position: relative;
+    top: clamp(80px, 18svh, 160px);
+  }
+  .gc-shell.cs-car-catalog .gc-bottom {
+    grid-row: 2;
+    margin-top: clamp(80px, 23.2svh, 207px);
+    padding: 0;
+    gap: 0;
+  }
+  .gc-shell.cs-car-catalog .gc-active-info,
+  .gc-shell.cs-car-catalog .gc-position,
+  .gc-shell.cs-car-catalog .gc-play-toggle,
+  .gc-shell.cs-car-catalog .gc-hint { display: none; }
+  .gc-shell.cs-car-catalog .gc-dock {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .gc-shell.cs-car-catalog .gc-transport { gap: 12px; }
+  .gc-shell.cs-car-catalog .gc-transport button {
+    width: 48px;
+    height: 48px;
+    border: 1px solid #ffffff30;
+    border-radius: 50%;
+    background: #11151dcc;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+  }
+  .gc-shell.cs-car-catalog .gc-transport button:hover {
+    border-color: #ff744b;
+    background: #ff744b20;
+    transform: translateY(-2px);
+  }
   .gc-shell.cs-car-catalog .gc-card {
-    border: 1px solid #292e3a;
-    border-radius: 18px;
+    border: 1px solid #3a4352;
+    border-radius: 20px;
     padding: 0;
     background: #11151d;
     overflow: hidden;
-    box-shadow: inset 0 1px 0 #ffffff0a, 0 18px 36px #0008;
+    box-shadow: inset 0 1px 0 #ffffff12, 0 24px 48px #0009;
   }
   .gc-shell.cs-car-catalog .gc-card::before {
     content: "";
     position: absolute;
-    inset: 3px;
+    inset: 2px;
     z-index: 4;
     pointer-events: none;
     border: 1px solid transparent;
-    border-radius: 15px;
+    border-radius: 18px;
     padding: 1px;
-    background: linear-gradient(135deg, #55d9e8, #283747 44%, #343044 67%, #a86af0);
+    background: linear-gradient(135deg, #7ce8f0, #334150 42%, #48405c 72%, #bd85ff);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 1;
-    filter: drop-shadow(0 0 2px #5cd7e955);
+    filter: drop-shadow(0 0 3px #66d9e966);
   }
   .gc-shell.cs-car-catalog .gc-card[data-active] {
-    box-shadow: inset 0 0 16px #49c9dc0c, 0 22px 42px #0009;
+    box-shadow:
+      inset 0 0 24px #49c9dc24,
+      0 0 24px #55d9e8,
+      0 0 64px #55d9e8aa,
+      0 0 108px #a86af088,
+      0 28px 52px #000b;
+  }
+  .gc-shell.cs-car-catalog .gc-card[data-active]::before {
+    inset: 1px;
+    border-width: 2px;
+    background-size: 300% 300%;
+    animation: cs-card-neon-flow 3.2s linear infinite;
+    filter: drop-shadow(0 0 16px #69dfeeff);
   }
   .gc-shell.cs-car-catalog .gc-card-rarity {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
     height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    border-bottom: 1px solid #ffffff18;
-    background: linear-gradient(110deg, #1a1d23, #151923 58%, #1c1924);
-    color: #c9cbd0;
-    font-size: 12px;
-    letter-spacing: 5px;
-    text-shadow: 0 0 8px #8b72d855;
+    border: 1px solid #ffffff2b;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    background: linear-gradient(110deg, #171b22f2, #121720f5 58%, #1b1824f2);
+    box-shadow: 0 5px 15px #0006;
+  }
+  .gc-shell.cs-car-catalog .gc-card-rarity img {
+    display: block;
+    width: 82px;
+    height: 23px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px #ffffff24);
   }
   .gc-shell.cs-car-catalog .gc-browser-bar { display: none; }
   .gc-shell.cs-car-catalog .gc-poster {
+    position: relative;
+    z-index: 1;
     aspect-ratio: 0.82;
     width: 100%;
     border-radius: 0;
+    margin-bottom: -32px;
     background: #10131a;
   }
-  .gc-shell.cs-car-catalog .gc-poster > img { object-fit: cover; }
+  .gc-shell.cs-car-catalog .gc-poster > img {
+    object-fit: cover;
+    object-position: center 54%;
+    filter: saturate(1.04) contrast(1.025);
+  }
   .gc-shell.cs-car-catalog .gc-card-info {
     position: relative;
-    min-height: 130px;
-    padding: 14px 16px 16px;
+    z-index: 2;
+    min-height: 150px;
+    padding: 20px;
     align-items: stretch;
-    background: linear-gradient(112deg, #383a40 0%, #36516b 50%, #392950 100%);
-    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+    font-family: "DM Sans", sans-serif;
+    border-top: 1px solid #ffffff20;
+    background: linear-gradient(112deg, #30343b 0%, #35495d 48%, #363047 100%);
+    border-radius: 0;
+    box-shadow: inset 0 1px 12px #ffffff0c;
+    clip-path: polygon(0 12px, 16px 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%);
   }
   .gc-shell.cs-car-catalog .gc-card-info .gc-card-copy {
-    gap: 5px;
-    align-items: flex-start;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 14px;
+    row-gap: 3px;
+    align-items: center;
+    align-content: stretch;
+    width: 100%;
   }
-  .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 20px; line-height: 1.15; }
-  .gc-shell.cs-car-catalog .gc-card-year { font-size: 13px; line-height: 1.2; color: #f0f2f6; }
-  .gc-shell.cs-car-catalog .gc-card-location { font-size: 12px; line-height: 1.2; color: #e1e5ed; }
-  .gc-shell.cs-car-catalog .gc-card-price { font-size: 19px; line-height: 1.1; margin-top: 3px; color: #fff; }
-  .gc-shell.cs-car-catalog .gc-card-info > svg { align-self: flex-end; margin-bottom: 2px; }
+  .gc-shell.cs-car-catalog .gc-card-info strong {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: calc(100% - 52px);
+    font-size: 20px;
+    line-height: 1.16;
+    font-family: Orbitron, Rajdhani, sans-serif;
+    font-weight: 700;
+    letter-spacing: -.025em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 12px #080b12aa;
+  }
+  .gc-shell.cs-car-catalog .gc-card[data-active] .gc-card-info strong {
+    color: transparent;
+    background: linear-gradient(105deg, #f5fbff 10%, #75efff 38%, #c391ff 64%, #f7fbff 90%);
+    background-size: 220% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: cs-neon-title-flow 4.5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 7px #71e8ff66);
+  }
+  @keyframes cs-card-neon-flow {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+  }
+  @keyframes cs-neon-title-flow {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+  }
+  .gc-shell.cs-car-catalog .gc-card-year { grid-column: 1; grid-row: 2; }
+  .gc-shell.cs-car-catalog .gc-card-location { grid-column: 1; grid-row: 3; align-self: end; }
+  .gc-shell.cs-car-catalog .gc-card-price {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    font-size: 22px;
+    line-height: 1.05;
+    font-family: Manrope, "DM Sans", sans-serif;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.035em;
+    text-shadow: 0 2px 14px #0005;
+  }
+  .gc-shell.cs-car-catalog .gc-card-brand {
+    position: absolute;
+    top: 17px;
+    right: 19px;
+    width: 42px;
+    height: 30px;
+    object-fit: contain;
+    opacity: .82;
+    filter: drop-shadow(0 2px 6px #0007);
+  }
+  .gc-shell.cs-car-catalog .gc-card-year { font-size: 13px; line-height: 1.2; font-weight: 700; letter-spacing: .025em; color: #e4e7ed; }
+  .gc-shell.cs-car-catalog .gc-card-location { font-size: 13px; line-height: 1.2; font-weight: 500; color: #d4dbe6; }
   .gc-shell.cs-car-catalog .gc-active-info p { font-size: 14px; }
   .gc-shell.cs-car-catalog .gc-position,
   .gc-shell.cs-car-catalog .gc-hint { font-size: 12px; }
   @media (max-width: 600px) {
     .gc-shell.cs-car-catalog {
-      min-height: 500px;
-      height: min(78svh, 760px);
-      padding-bottom: 18px;
+      grid-template-rows: auto auto;
+      min-height: 0;
+      height: auto;
+      margin-top: 50px;
+      padding: 0 0 18px;
     }
-    .gc-shell.cs-car-catalog .gc-card { border-radius: 15px; }
-    .gc-shell.cs-car-catalog .gc-card::before { border-radius: 12px; }
-    .gc-shell.cs-car-catalog .gc-card-rarity { height: 30px; font-size: 11px; }
-    .gc-shell.cs-car-catalog .gc-card-info { min-height: 122px; padding: 12px 12px 14px; }
-    .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 18px; }
+    .gc-shell.cs-car-catalog .gc-stage {
+      height: calc(var(--gc-card-width) * 1.1 + 460px);
+      top: 0;
+    }
+    .gc-shell.cs-car-catalog .gc-bottom { margin-top: 50px; }
+    .gc-shell.cs-car-catalog .gc-card { border-radius: 16px; }
+    .gc-shell.cs-car-catalog .gc-card::before { border-radius: 13px; }
+    .gc-shell.cs-car-catalog .gc-poster { aspect-ratio: 0.92; margin-bottom: -24px; }
+    .gc-shell.cs-car-catalog .gc-card-rarity { width: 112px; height: 30px; }
+    .gc-shell.cs-car-catalog .gc-card-rarity img { width: 74px; height: 21px; }
+    .gc-shell.cs-car-catalog .gc-card-info { min-height: 140px; padding: 20px; clip-path: polygon(0 9px, 12px 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%); }
+    .gc-shell.cs-car-catalog .gc-card-info strong { font-size: 16px; }
+    .gc-shell.cs-car-catalog .gc-card-brand { top: 13px; right: 12px; width: 48px; height: 35px; }
     .gc-shell.cs-car-catalog .gc-card-year { font-size: 12px; }
     .gc-shell.cs-car-catalog .gc-card-location { font-size: 12px; }
     .gc-shell.cs-car-catalog .gc-card-price { font-size: 18px; }
     .gc-shell.cs-car-catalog .gc-active-info p { font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gc-shell.cs-car-catalog .gc-card[data-active]::before,
+    .gc-shell.cs-car-catalog .gc-card[data-active] .gc-card-info strong {
+      animation: none;
+    }
   }
 `;
 
 export interface GlassyCarouselItem {
   id: string;
   title: string;
+  brand?: string;
   subtitle: string;
   year?: string;
   location?: string;
@@ -164,6 +305,8 @@ export interface GlassyCarouselProps {
   cardOrientation?: "landscape" | "portrait";
   /** Autoplay delay in milliseconds. Default 6000; minimum 2500. */
   interval?: number;
+  /** Show only previous/next arrows in the control dock. */
+  compactControls?: boolean;
   /** Timed advance. Default false; updates when changed. Pauses for hover, card focus, dragging, open preview, hidden page and OS reduced motion. */
   autoPlay?: boolean;
   /** Accessible name of the region. Default Media collection. */
@@ -182,6 +325,20 @@ export interface GlassyCarouselProps {
 
 const wrap = (value: number, length: number) =>
   ((value % length) + length) % length;
+const vehicleBrandLogos: Record<string, string> = {
+  bmw: "bmw",
+  chevrolet: "chevrolet",
+  ford: "ford",
+  honda: "honda",
+  jeep: "jeep",
+  volkswagen: "volkswagen",
+};
+function vehicleBrandLogo(brand?: string) {
+  const slug = brand?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return slug && vehicleBrandLogos[slug]
+    ? `/brand/vehicles/${vehicleBrandLogos[slug]}.png`
+    : undefined;
+}
 function projectDomain(url?: string) {
   try {
     return url
@@ -217,6 +374,7 @@ export default function GlassyCarousel({
   cardOrientation = "landscape",
   interval = 6000,
   autoPlay = false,
+  compactControls = false,
   label = "Media collection",
   className = "",
   style,
@@ -251,11 +409,9 @@ export default function GlassyCarousel({
   const active = items[activeIndex];
   const cardWidth =
     cardOrientation === "portrait"
-      ? Math.min(
-          360,
-          stageSize.width * 0.72,
-          Math.max(220, (stageSize.height - 166) * 0.8),
-        )
+      ? stageSize.width <= 900
+        ? Math.min(400, stageSize.width * 0.68)
+        : Math.min(400, stageSize.width * 0.995)
       : layout === "poster"
         ? Math.min(
             270,
@@ -265,7 +421,7 @@ export default function GlassyCarousel({
         : Math.min(420, stageSize.width * 0.72);
   // Coverflow geometry adapted from educalvolpz/coverflow-carousel on 21st.
   // Keep artwork opaque; depth and scale establish the hierarchy.
-  const step = cardWidth * 0.78;
+  const step = cardWidth * (stageSize.width <= 900 ? 0.68 : 0.78);
   const running =
     playing &&
     !reduced &&
@@ -524,7 +680,7 @@ export default function GlassyCarousel({
             >
               {layout === "website" && (
                 <span className="gc-card-rarity" aria-hidden="true">
-                  ★★★★★
+                  <img src="/brand/cs-car-logo.png" alt="" />
                 </span>
               )}
               {layout === "website" && (
@@ -559,6 +715,13 @@ export default function GlassyCarousel({
               </span>
               {layout === "website" && (
                 <span className="gc-card-info">
+                  {compactControls && vehicleBrandLogo(item.brand) && (
+                    <img
+                      className="gc-card-brand"
+                      src={vehicleBrandLogo(item.brand)}
+                      alt={`${item.brand} logo`}
+                    />
+                  )}
                   <span className="gc-card-copy">
                     <strong>{item.title}</strong>
                     {item.year && (
@@ -574,7 +737,9 @@ export default function GlassyCarousel({
                       <span>{item.subtitle}</span>
                     )}
                   </span>
-                  <ArrowUpRight size={20} aria-hidden="true" />
+                  {!compactControls && (
+                    <ArrowUpRight size={20} aria-hidden="true" />
+                  )}
                 </span>
               )}
             </button>
@@ -582,16 +747,24 @@ export default function GlassyCarousel({
         })}
       </div>
       <div className="gc-bottom">
-        <div className="gc-active-info">
-          <h2>{active.title}</h2>
-          <p>{active.subtitle}</p>
-        </div>
-        <div className="gc-dock" role="group" aria-label="Carousel controls">
-          <span className="gc-position" aria-hidden="true">
-            <span>{String(activeIndex + 1).padStart(2, "0")}</span>
-            <span>/</span>
-            <span>{String(items.length).padStart(2, "0")}</span>
-          </span>
+        {!compactControls && (
+          <div className="gc-active-info">
+            <h2>{active.title}</h2>
+            <p>{active.subtitle}</p>
+          </div>
+        )}
+        <div
+          className="gc-dock"
+          role="group"
+          aria-label="Carousel controls"
+        >
+          {!compactControls && (
+            <span className="gc-position" aria-hidden="true">
+              <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+              <span>/</span>
+              <span>{String(items.length).padStart(2, "0")}</span>
+            </span>
+          )}
           <div className="gc-transport">
             <button
               type="button"
@@ -601,20 +774,22 @@ export default function GlassyCarousel({
             >
               <ChevronLeft size={19} />
             </button>
-            <button
-              type="button"
-              className="gc-play-toggle"
-              onClick={() => setPlaying((value) => !value)}
-              aria-label={playing ? "Pause carousel" : "Play carousel"}
-              aria-pressed={playing}
-              disabled={reduced || items.length < 2}
-            >
-              {playing ? (
-                <Pause size={14} fill="currentColor" />
-              ) : (
-                <Play size={14} fill="currentColor" />
-              )}
-            </button>
+            {!compactControls && (
+              <button
+                type="button"
+                className="gc-play-toggle"
+                onClick={() => setPlaying((value) => !value)}
+                aria-label={playing ? "Pause carousel" : "Play carousel"}
+                aria-pressed={playing}
+                disabled={reduced || items.length < 2}
+              >
+                {playing ? (
+                  <Pause size={14} fill="currentColor" />
+                ) : (
+                  <Play size={14} fill="currentColor" />
+                )}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => select(index + 1)}
@@ -625,13 +800,15 @@ export default function GlassyCarousel({
             </button>
           </div>
         </div>
-        <p className="gc-hint">
-          <span>Drag to explore</span>
-          <span className="gc-hint-separator">or</span>
-          <ArrowLeft size={12} />
-          <ArrowRight size={12} />
-          <span>to browse</span>
-        </p>
+        {!compactControls && (
+          <p className="gc-hint">
+            <span>Drag to explore</span>
+            <span className="gc-hint-separator">or</span>
+            <ArrowLeft size={12} />
+            <ArrowRight size={12} />
+            <span>to browse</span>
+          </p>
+        )}
       </div>
       <p className="gc-sr-only" aria-live="polite" aria-atomic="true">
         {!playing && `${active.title}. ${activeIndex + 1} of ${items.length}.`}
