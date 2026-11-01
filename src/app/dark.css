@@ -365,6 +365,48 @@ select option {
     border-color 0.3s;
   overflow: hidden;
 }
+.car-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--card-shine-angle, 0deg),
+    transparent 0deg,
+    transparent 245deg,
+    #ff744b99 285deg,
+    #8bbcff99 315deg,
+    transparent 350deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.car-card:hover::before,
+.car-card:focus-within::before {
+  opacity: 1;
+  animation: card-border-glint 5s linear infinite;
+}
+@property --card-shine-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes card-border-glint {
+  to {
+    --card-shine-angle: 360deg;
+  }
+}
 .car-card::after {
   content: "";
   position: absolute;
@@ -744,6 +786,18 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
   border: 1px solid #ffffff14;
   border-radius: 13px;
   background: #0b111bcc;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.form-toggle:hover,
+.form-toggle:focus-within {
+  border-color: #ff855b66;
+  background: linear-gradient(115deg, #111b29f2, #11131df2 65%, #211720f2);
+  box-shadow:
+    0 0 24px #ff70420c,
+    inset 0 1px #ffffff08;
 }
 .form-toggle + .form-toggle {
   margin-top: 12px;
@@ -1414,6 +1468,10 @@ td {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .car-card:hover::before,
+  .car-card:focus-within::before {
+    animation: none;
+  }
   .car-card {
     transform: none !important;
   }
