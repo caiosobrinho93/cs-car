@@ -556,7 +556,7 @@ export function VehicleDetails({
           </div>
         </div>
         <div className="detail-copy">
-          <span className="eyebrow">
+          <span className="detail-year">
             {v.year} · {v.body}
           </span>
           <h3>
@@ -581,6 +581,7 @@ export function VehicleDetails({
           <p className="description">{v.description}</p>
           <a
             className="btn orange"
+            data-shimmer="true"
             href={whatsapp(
               `Olá, CS Car! Tenho interesse no ${v.brand} ${v.model} ${v.year}, anunciado por ${money(v.price)}.${isDemo ? " Estou vendo o site de demonstração." : ""}`,
             )}

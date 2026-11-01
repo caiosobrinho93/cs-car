@@ -963,6 +963,15 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
   line-height: 0.95;
   letter-spacing: -0.035em;
 }
+.detail-year {
+  display: inline-block;
+  margin-bottom: 9px;
+  color: #bdc9dc;
+  font:
+    600 15px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.1em;
+}
 .detail-copy > p {
   font-size: 13px;
 }
@@ -975,24 +984,53 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
   border-top: 1px solid #ffffff12;
 }
 .detail-specs p {
-  padding: 13px 0;
+  padding: 10px 0;
   font-size: 15px;
 }
 .detail-features {
   gap: 12px;
   margin-top: 18px;
-  font-size: 14px;
+  font-size: 12px;
 }
 .detail-features span {
-  padding: 9px 10px;
+  min-height: 26px;
+  padding: 4px 10px;
   border: 1px solid #ffffff10;
   border-radius: 9px;
   background: #ffffff05;
 }
 .detail-copy > .btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 52px;
   border-radius: 12px;
   font-size: 14px;
+}
+.detail-copy > .btn[data-shimmer="true"]::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    #fff8 48%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  animation: contact-button-shimmer 4.5s ease-in-out infinite;
+}
+@keyframes contact-button-shimmer {
+  0%,
+  68%,
+  100% {
+    transform: translateX(-130%);
+  }
+  86% {
+    transform: translateX(130%);
+  }
 }
 .detail-copy > p,
 .description,
@@ -1471,6 +1509,16 @@ td {
   }
   .detail-copy > h3 {
     font-size: 36px;
+  }
+  .detail-year {
+    font-size: 17px;
+  }
+  .detail-specs p {
+    padding: 10px 0;
+  }
+  .detail-features span {
+    min-height: 26px;
+    padding: 4px 8px;
   }
   .detail-price {
     font-size: 32px;
