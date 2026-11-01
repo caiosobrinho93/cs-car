@@ -509,7 +509,8 @@ export function VehicleDetails({
   v: Vehicle;
   onClose: () => void;
 }) {
-  const [photo, setPhoto] = useState(0);
+  const [photo, setPhoto] = useState(0),
+    [descriptionExpanded, setDescriptionExpanded] = useState(false);
   return (
     <Modal title={`${v.brand} ${v.model}`} onClose={onClose} wide>
       <div className="details">
@@ -578,7 +579,21 @@ export function VehicleDetails({
               </p>
             ))}
           </div>
-          <p className="description">{v.description}</p>
+          <div
+            className={`description-wrap${descriptionExpanded ? " expanded" : ""}`}
+          >
+            <p className="description">{v.description}</p>
+            {v.description.length > 140 && (
+              <button
+                type="button"
+                className="description-toggle"
+                aria-expanded={descriptionExpanded}
+                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+              >
+                {descriptionExpanded ? "Ver menos" : "Ver tudo"}
+              </button>
+            )}
+          </div>
           <a
             className="btn orange"
             data-shimmer="true"

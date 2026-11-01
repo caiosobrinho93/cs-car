@@ -1042,6 +1042,33 @@ dialog.modal:has(.stack-form) .modal-heading h2 {
   font-size: 15px;
   line-height: 1.5;
 }
+.description-wrap {
+  position: relative;
+  margin: 17px 0;
+}
+.description-wrap:not(.expanded) .description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.description-wrap .description {
+  margin: 0;
+}
+.description-toggle {
+  margin-top: 5px;
+  padding: 0;
+  color: #ff9678;
+  font:
+    600 14px "Rajdhani",
+    sans-serif;
+  text-decoration: underline;
+  text-decoration-color: #ff967866;
+  text-underline-offset: 3px;
+}
+.description-toggle:hover {
+  color: #ffc0aa;
+}
 .detail-copy > small,
 .photo-caption {
   color: #9aaac4;
