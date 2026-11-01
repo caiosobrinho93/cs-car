@@ -536,12 +536,12 @@ select option {
   background:
     linear-gradient(
       180deg,
-      #090b0fa8 0%,
-      #090b0f9c 38%,
-      #090b0fd9 78%,
-      #090b0ff5 100%
+      #090b0f24 0%,
+      #090b0f12 38%,
+      #090b0f20 78%,
+      #090b0f54 100%
     ),
-    radial-gradient(ellipse at 50% 42%, transparent 0%, #090b0f70 100%);
+    radial-gradient(ellipse at 50% 42%, transparent 0%, #090b0f24 100%);
 }
 .home-carousel-video video {
   display: block;
@@ -549,8 +549,8 @@ select option {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.42;
-  filter: brightness(0.72) saturate(0.72);
+  opacity: 0.86;
+  filter: brightness(0.96) saturate(0.9);
 }
 .home-carousel-section > :not(.home-carousel-video) {
   position: relative;

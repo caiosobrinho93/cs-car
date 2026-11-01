@@ -31,6 +31,9 @@ const csCarCatalogStyles = `
     padding-bottom: 20px;
     background: transparent;
   }
+  .gc-shell.cs-car-catalog .gc-atmosphere {
+    background: radial-gradient(ellipse at 50% 44%, #0b0d1110, transparent 68%);
+  }
   .gc-shell.cs-car-catalog .gc-stage { grid-row: 1; }
   .gc-shell.cs-car-catalog .gc-bottom { grid-row: 2; }
   .gc-shell.cs-car-catalog .gc-card {
