@@ -1399,7 +1399,8 @@ td {
 }
 @media (max-width: 680px) {
   .header {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 40;
     height: 76px;
     padding: 0 5%;
@@ -1463,6 +1464,10 @@ td {
       linear-gradient(145deg, #111a28, #080b12);
     box-shadow: none;
     transform-origin: top center;
+    font-family: "Rajdhani", "DM Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.025em;
   }
   .nav.open {
     display: flex;
@@ -1480,6 +1485,8 @@ td {
     border-bottom: 1px solid #ffffff16;
     font-size: clamp(26px, 8vw, 42px);
     letter-spacing: -0.02em;
+    font-family: "Rajdhani", "DM Sans", sans-serif;
+    font-weight: 600;
   }
   .nav a:hover {
     background: #ffffff0c;
