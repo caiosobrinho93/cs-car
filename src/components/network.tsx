@@ -60,6 +60,7 @@ export default function Network() {
     ),
     [admin, setAdmin] = useState(false),
     [teamMember, setTeamMember] = useState(false),
+    [accountPending, setAccountPending] = useState(false),
     [canEdit, setCanEdit] = useState(isDemo),
     [locations, setLocations] = useState<Garage[]>(isDemo ? garages : []),
     [ready, setReady] = useState(isDemo),
@@ -91,13 +92,17 @@ export default function Network() {
       ]);
       setGarage(locations?.[0] || null);
       setLocations((locations || []) as Garage[]);
-      setTeamMember(!!member?.active);
+      const hasPanelAccess =
+        !!member?.active && ["admin", "seller"].includes(member.role);
+      setTeamMember(hasPanelAccess);
+      setAccountPending(!hasPanelAccess);
       setAdmin(!!isAdmin || member?.role === "admin");
       setCanEdit(!!isAdmin || member?.role === "admin" || !!member?.can_edit_vehicles);
     } else {
       setGarage(null);
       setAdmin(false);
       setTeamMember(false);
+      setAccountPending(false);
       setCanEdit(false);
     }
     setReady(true);
@@ -124,7 +129,8 @@ export default function Network() {
         <p>Verificando seu acesso…</p>
       </div>
     );
-  if (!isDemo && !teamMember) return <Auth onDone={loadIdentity} />;
+  if (!isDemo && !teamMember)
+    return <Auth onDone={loadIdentity} pending={accountPending} />;
   const nav: [string, string, typeof LayoutDashboard][] = [
     ["overview", "Visão geral", LayoutDashboard],
     ["network", "Veículos", CarFront],
@@ -439,7 +445,7 @@ export default function Network() {
     </div>
   );
 }
-type TeamRecord = { user_id: string; display_name: string; role: string; email: string; can_edit_vehicles: boolean; commission_percent: number; active: boolean };
+type TeamRecord = { user_id: string; display_name: string; role: "admin" | "seller" | "member"; email: string; can_edit_vehicles: boolean; commission_percent: number; active: boolean };
 function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (message: string) => void }) {
   const [members, setMembers] = useState<TeamRecord[]>([]);
   const [locations, setLocations] = useState<Garage[]>([]);
@@ -451,18 +457,17 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
     setMembersLoading(true);
     setMembersError("");
     try {
-      const [{ data: { session }, error: sessionError }, { data: places, error: placesError }] = await Promise.all([
-        supabase!.auth.getSession(),
+      const [{ data: { user }, error: userError }, { data: places, error: placesError }] = await Promise.all([
+        supabase!.auth.getUser(),
         supabase!.from("garages").select("*").order("name"),
       ]);
-      if (sessionError) throw sessionError;
+      if (userError) throw userError;
       if (placesError) throw new Error("Não foi possível carregar os locais físicos.");
       setLocations((places || []) as Garage[]);
-      if (!session) throw new Error("Sessão encerrada. Entre novamente para gerenciar a equipe.");
-      const response = await fetch("/api/admin/invite", { headers: { authorization: `Bearer ${session.access_token}` } });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || "Não foi possível carregar a equipe.");
-      setMembers(result.members || []);
+      if (!user) throw new Error("Sessão encerrada. Entre novamente para gerenciar a equipe.");
+      const { data, error } = await supabase!.from("team_members").select("*").order("created_at");
+      if (error) throw new Error("Não foi possível carregar as contas. Confirme que a migração de cadastro de membros foi aplicada.");
+      setMembers((data || []) as TeamRecord[]);
     } catch (error) {
       setMembers([]);
       setMembersError(error instanceof Error ? error.message : "Não foi possível carregar a equipe.");
@@ -471,22 +476,18 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
     }
   }
   useEffect(() => { void load(); }, []);
-  async function invite(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true);
-    try {
-      const [{ data: { session } }] = await Promise.all([supabase!.auth.getSession()]);
-      const formElement = event.currentTarget;
-      const form = new FormData(formElement);
-      const response = await fetch("/api/admin/invite", { method: "POST", headers: { authorization: `Bearer ${session?.access_token}`, "content-type": "application/json" }, body: JSON.stringify({ name: form.get("name"), email: form.get("email"), commissionPercent: form.get("commission") }) });
-      const result = await response.json(); if (!response.ok) throw new Error(result.error);
-      formElement.reset(); notify("Convite enviado ao vendedor."); await load();
-    } catch (error) { notify(error instanceof Error ? error.message : "Falha ao convidar vendedor."); }
-    finally { setBusy(false); }
-  }
   async function saveMember(member: TeamRecord) {
-    const { data: { session } } = await supabase!.auth.getSession();
-    const response = await fetch("/api/admin/invite", { method: "PATCH", headers: { authorization: `Bearer ${session?.access_token}`, "content-type": "application/json" }, body: JSON.stringify({ userId: member.user_id, canEdit: member.can_edit_vehicles, commissionPercent: member.commission_percent, active: member.active }) });
-    const result = await response.json(); notify(response.ok ? "Permissões e comissão salvas." : result.error);
+    setBusy(true);
+    try {
+      const { error } = await supabase!.from("team_members").update({ role: member.role, can_edit_vehicles: member.role === "seller" && member.can_edit_vehicles, commission_percent: member.role === "seller" ? member.commission_percent : 0, active: member.active, updated_at: new Date().toISOString() }).eq("user_id", member.user_id).neq("role", "admin");
+      if (error) throw new Error(error.message || "Não foi possível salvar o perfil.");
+      notify("Perfil e permissões salvos.");
+      await load();
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Falha ao salvar o perfil.");
+    } finally {
+      setBusy(false);
+    }
   }
   async function addLocation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement);
@@ -499,9 +500,8 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
   }
   return <div className="team-admin">
     <section className="admin-panel"><div className="dashboard-section-title"><h2>Equipe CS Car</h2><span>Contas internas · comissão sobre o preço anunciado</span></div>
-      {membersError ? <p className="team-load-state error" role="alert">{membersError}</p> : membersLoading ? <p className="team-load-state" role="status">Carregando equipe…</p> : members.length === 0 ? <p className="team-load-state">Nenhuma conta interna cadastrada. Convide o primeiro vendedor para começar.</p> : null}
-      <form className="team-invite-form" onSubmit={invite}><input name="name" placeholder="Nome do vendedor" aria-label="Nome do vendedor" required maxLength={120} disabled={busy || membersLoading || !!membersError}/><input name="email" placeholder="E-mail para convite" aria-label="E-mail do vendedor" type="email" required disabled={busy || membersLoading || !!membersError}/><input name="commission" placeholder="Comissão %" aria-label="Comissão percentual" type="number" min="0" max="100" step="0.01" defaultValue="0" required disabled={busy || membersLoading || !!membersError}/><button className="btn orange" disabled={busy || membersLoading || !!membersError}>{busy ? "Enviando…" : "Convidar"}</button></form>
-      <div className="team-member-list">{members.map((member) => <article className="team-member" key={member.user_id}><div><strong>{member.display_name || member.email}</strong><small>{member.email} · {member.role === "admin" ? "Administrador" : "Vendedor"}</small></div>{member.role === "seller" && <><label className="team-permission"><input type="checkbox" checked={member.can_edit_vehicles} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, can_edit_vehicles:e.target.checked} : m))}/> Pode editar anúncios</label><input aria-label={`Comissão de ${member.display_name}`} type="number" min="0" max="100" step="0.01" value={member.commission_percent} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, commission_percent:Number(e.target.value)} : m))}/><button className="btn outline small" onClick={() => saveMember(member)}>Salvar</button></>}</article>)}</div>
+      <p className="team-load-state">Qualquer pessoa pode criar uma conta. Aqui, o administrador libera o acesso interno e define as permissões de cada vendedor.</p>
+      {members.length > 0 && <div className="team-member-list">{members.map((member) => <article className="team-member" key={member.user_id}><div><strong>{member.display_name || member.email}</strong><small>{member.email} · {member.role === "admin" ? "Administrador" : member.role === "seller" ? "Vendedor" : "Membro sem acesso ao painel"}</small></div>{member.role === "admin" ? <span className="status paid">Administrador</span> : <><label className="team-role"><span>Perfil</span><select aria-label={`Perfil de ${member.display_name || member.email}`} value={member.role} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, role:e.target.value as TeamRecord["role"]} : m))}><option value="member">Membro</option><option value="seller">Vendedor</option></select></label>{member.role === "seller" && <><label className="team-permission"><input type="checkbox" checked={member.can_edit_vehicles} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, can_edit_vehicles:e.target.checked} : m))}/> Pode editar anúncios</label><label className="team-commission"><span>Comissão %</span><input aria-label={`Comissão de ${member.display_name || member.email}`} type="number" min="0" max="100" step="0.01" value={member.commission_percent} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, commission_percent:Number(e.target.value)} : m))}/></label></>}<button type="button" className="btn outline small" disabled={busy} onClick={() => void saveMember(member)}>{busy ? "Salvando…" : "Salvar"}</button></>}</article>)}</div>}
     </section>
     <section className="admin-panel"><div className="dashboard-section-title"><h2>Locais dos veículos</h2><span>Locais físicos, sem contas de acesso</span></div>
       <form className="location-form" onSubmit={addLocation}><input name="name" placeholder="Nome do local/garagem" aria-label="Nome do local" required/><input name="address" placeholder="Endereço ou referência" aria-label="Endereço"/><div className="form-grid"><select name="state" aria-label="Estado" required value={state} onChange={(e)=>setState(e.target.value)}><option value="">Estado</option>{BR_STATES.map((uf)=><option key={uf}>{uf}</option>)}</select><select name="city" aria-label="Cidade" required disabled={!state}><option value="">Cidade</option>{(CITIES_BY_STATE[state]||[]).map((city)=><option key={city}>{city}</option>)}</select></div><input name="phone" placeholder="WhatsApp do local (opcional)" aria-label="WhatsApp do local"/><input name="email" placeholder="E-mail do local (opcional)" aria-label="E-mail do local" type="email"/><input name="notes" placeholder="Observações (opcional)" aria-label="Observações"/><button className="btn orange">Adicionar local</button></form>
@@ -509,19 +509,27 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
     </section>
   </div>;
 }
-function Auth({ onDone }: { onDone: () => void }) {
+function Auth({ onDone, pending = false }: { onDone: () => void; pending?: boolean }) {
   const [busy, setBusy] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [mode, setMode] = useState<"login" | "signup">("login");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setMessage("");
     const f = new FormData(e.currentTarget);
-    const email = String(f.get("email")), password = String(f.get("password"));
+    const email = String(f.get("email")), password = String(f.get("password")), displayName = String(f.get("display_name") || "").trim();
     try {
-      const { error } = await supabase!.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      onDone();
+      if (mode === "signup") {
+        const { data, error } = await supabase!.auth.signUp({ email, password, options: { data: { display_name: displayName } } });
+        if (error) throw error;
+        if (data.session) onDone();
+        else setMessage("Conta criada. Se a confirmação de e-mail estiver ativa no Supabase, confirme o endereço e depois entre. O administrador precisa liberar o acesso ao painel.");
+      } else {
+        const { error } = await supabase!.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onDone();
+      }
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Não foi possível concluir.");
     } finally {
@@ -548,9 +556,10 @@ function Auth({ onDone }: { onDone: () => void }) {
             Conhecer a loja <ArrowUpRight size={18} />
           </Link>
         </div>
-        <form className="auth-card" onSubmit={submit}>
-          <h2>Bem-vindo de volta.</h2>
-          <p>Acesse o painel da equipe CS Car.</p>
+        {pending ? <section className="auth-card auth-pending"><h2>Conta aguardando liberação</h2><p>Sua conta está cadastrada como membro. Peça ao administrador da CS Car para liberar o perfil de vendedor.</p><button type="button" className="btn outline" onClick={() => void supabase!.auth.signOut().then(onDone)}>Sair</button><button type="button" className="text-link" onClick={onDone}>Verificar acesso</button></section> : <form className="auth-card" onSubmit={submit}>
+          <h2>{mode === "login" ? "Bem-vindo de volta." : "Crie sua conta."}</h2>
+          <p>{mode === "login" ? "Entre no painel ou crie uma conta de membro." : "Sua conta começa sem acesso interno; o administrador poderá promovê-la a vendedor."}</p>
+          {mode === "signup" && <label>Nome<input name="display_name" required maxLength={120} autoComplete="name" /></label>}
           <label>
             E-mail
             <input name="email" type="email" required autoComplete="email" />
@@ -562,11 +571,11 @@ function Auth({ onDone }: { onDone: () => void }) {
               type="password"
               required
               minLength={8}
-              autoComplete="current-password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
             />
           </label>
           <button className="btn orange" disabled={busy}>
-            {busy ? "Aguarde…" : "Entrar no painel"}
+            {busy ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar conta"}
             <ArrowRight size={18} />
           </button>
           {message && (
@@ -574,7 +583,8 @@ function Auth({ onDone }: { onDone: () => void }) {
               {message}
             </p>
           )}
-        </form>
+          <button type="button" className="auth-mode-toggle" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); }}>{mode === "login" ? "Ainda não tem conta? Cadastre-se" : "Já tem conta? Entrar"}</button>
+        </form>}
       </div>
     </div>
   );

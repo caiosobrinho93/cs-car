@@ -5,7 +5,12 @@ import Link from "next/link";
 const FRAME_COUNT = 196;
 const FRAME_TRANSITIONS = FRAME_COUNT - 1;
 const INTRO_FRAMES = 8;
-const INTRO_MIN_DURATION = 1450;
+const INTRO_LOADER_DURATION = 2000;
+const INTRO_LOGO_FADE_IN = 600;
+const INTRO_LOGO_HOLD = 2100;
+const INTRO_LOGO_FADE_OUT = 500;
+const INTRO_BLACK_HOLD = 300;
+const INTRO_SCREEN_FADE_OUT = 500;
 export default function Hero() {
   const host = useRef<HTMLElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
@@ -29,19 +34,15 @@ export default function Hero() {
       queue: number[] = [],
       cleanup = () => {},
       refreshScroll = () => {},
-      introFinishScheduled = false,
       introRemoved = false,
       introExitTimer: number | undefined,
-      introFinishTimer: number | undefined,
-      introSafetyTimer: number | undefined,
+      introTimelineTimer: number | undefined,
       introHardStopTimer: number | undefined;
-    const introStarted = performance.now(),
-      reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches,
-      introMobile = matchMedia("(max-width: 680px)").matches,
-      initialFrames = new Set<number>(),
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches,
       originalHtmlOverflow = document.documentElement.style.overflow,
       originalBodyOverflow = document.body.style.overflow;
     const copy = el.querySelector<HTMLElement>(".hero-copy"),
+      middle = el.querySelector<HTMLElement>(".hero-middle"),
       outro = el.querySelector<HTMLElement>(".hero-outro"),
       cache = new Map<number, HTMLImageElement>(),
       pending = new Set<number>(),
@@ -56,31 +57,31 @@ export default function Hero() {
       document.body.style.overflow = originalBodyOverflow;
       requestAnimationFrame(refreshScroll);
     }
-    function releaseIntro() {
-      if (disposed || introRemoved || introFinishScheduled) return;
-      introFinishScheduled = true;
-      const minDuration = reducedMotion ? 650 : INTRO_MIN_DURATION;
-      const delay = Math.max(
-        0,
-        minDuration - (performance.now() - introStarted),
-      );
-      introFinishTimer = window.setTimeout(() => {
+    const motionScale = reducedMotion ? 0 : 1;
+    const introBeforeScreenFade =
+      INTRO_LOADER_DURATION +
+      INTRO_LOGO_FADE_IN +
+      INTRO_LOGO_HOLD +
+      INTRO_LOGO_FADE_OUT +
+      INTRO_BLACK_HOLD;
+    introTimelineTimer = window.setTimeout(
+      () => {
         if (disposed || introRemoved) return;
         setIntroVisible(false);
         introExitTimer = window.setTimeout(
           finishIntro,
-          reducedMotion ? 20 : introMobile ? 650 : 850,
+          motionScale ? INTRO_SCREEN_FADE_OUT : 20,
         );
-      }, delay);
-    }
-    function markInitialFrameReady(n: number) {
-      if (n >= INTRO_FRAMES || initialFrames.has(n)) return;
-      initialFrames.add(n);
-      if (initialFrames.size === INTRO_FRAMES) releaseIntro();
-    }
-    // Image decoding may stall on slow devices; never let it hold the overlay indefinitely.
-    introSafetyTimer = window.setTimeout(releaseIntro, 2600);
-    introHardStopTimer = window.setTimeout(finishIntro, 5000);
+      },
+      motionScale
+        ? introBeforeScreenFade
+        : 20,
+    );
+    // Failsafe in case a browser suspends animation timers while the tab is idle.
+    introHardStopTimer = window.setTimeout(
+      finishIntro,
+      introBeforeScreenFade + INTRO_SCREEN_FADE_OUT + 1000,
+    );
     const mobile = innerWidth < 760,
       limit = mobile ? 12 : 30;
     function paint() {
@@ -138,7 +139,6 @@ export default function Hero() {
                   )[0];
                   cache.delete(far);
                 }
-                markInitialFrameReady(n);
                 paint();
               }
               finish();
@@ -146,7 +146,6 @@ export default function Hero() {
         };
         img.onerror = () => {
           failed.add(n);
-          markInitialFrameReady(n);
           finish();
         };
         img.src = `/sequence/${mobile ? "mobile" : "desktop"}/${String(n + 1).padStart(3, "0")}.webp`;
@@ -154,11 +153,17 @@ export default function Hero() {
     }
     function seek(p: number) {
       if (copy) copy.inert = p > 0.25;
+      if (middle) middle.inert = p < 0.28 || p > 0.68;
       if (outro) outro.inert = p < 0.65;
       target = Math.min(FRAME_TRANSITIONS, Math.round(p * FRAME_TRANSITIONS));
       el.dataset.requestedFrame = String(target + 1);
       el.style.setProperty("--progress", String(p));
       el.style.setProperty("--intro", String(Math.max(0, 1 - p * 4)));
+      const middleOpacity = Math.max(
+        0,
+        Math.min(1, (p - 0.28) / 0.08, (0.68 - p) / 0.08),
+      );
+      el.style.setProperty("--middle", String(middleOpacity));
       el.style.setProperty("--outro", String(Math.max(0, (p - 0.65) / 0.35)));
       queue = [];
       for (let d = 0; d < 10; d++)
@@ -220,8 +225,7 @@ export default function Hero() {
       cleanup();
       if (seekFrame) cancelAnimationFrame(seekFrame);
       cache.clear();
-      window.clearTimeout(introFinishTimer);
-      window.clearTimeout(introSafetyTimer);
+      window.clearTimeout(introTimelineTimer);
       window.clearTimeout(introExitTimer);
       window.clearTimeout(introHardStopTimer);
       document.documentElement.style.overflow = originalHtmlOverflow;
@@ -263,6 +267,18 @@ export default function Hero() {
             Encontre seu próximo carro <ArrowUpRight size={19} />
           </Link>
         </div>
+        <div className="hero-middle" inert>
+          <p className="eyebrow">A CONEXÃO QUE MOVE VOCÊ</p>
+          <h2>
+            Seu próximo carro.
+            <br />
+            <em>Do jeito certo.</em>
+          </h2>
+          <p>Boas oportunidades, pessoas certas e uma escolha feita com confiança.</p>
+          <Link href="/loja" className="btn light">
+            Explore os veículos <ArrowUpRight size={19} />
+          </Link>
+        </div>
         <div className="hero-outro" inert>
           <p className="eyebrow">SEU PRÓXIMO DESTINO COMEÇA AQUI</p>
           <h2>
@@ -286,8 +302,8 @@ export default function Hero() {
           role="status"
           aria-label="CS Car"
         >
+          <span className="site-intro-loader" aria-hidden="true" />
           <div className="site-intro-runner">
-            <span className="site-intro-smoke" aria-hidden="true" />
             <img
               className="site-intro-logo"
               src="/brand/cs-car-logo.png"
