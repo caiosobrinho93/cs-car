@@ -71,7 +71,7 @@ const csCarCatalogStyles = `
     transform: translateY(-2px);
   }
   .gc-shell.cs-car-catalog .gc-card {
-    border: 1px solid #3a4352;
+    border: 1px solid #514047;
     border-radius: 20px;
     padding: 0;
     background: #11151d;
@@ -87,20 +87,20 @@ const csCarCatalogStyles = `
     border: 1px solid transparent;
     border-radius: 18px;
     padding: 1px;
-    background: linear-gradient(135deg, #7ce8f0, #334150 42%, #48405c 72%, #bd85ff);
+    background: linear-gradient(135deg, #ff9b55, #45343a 42%, #633541 72%, #ff624d);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 1;
-    filter: drop-shadow(0 0 3px #66d9e966);
+    filter: drop-shadow(0 0 3px #ff704866);
   }
   .gc-shell.cs-car-catalog .gc-card[data-active] {
     box-shadow:
-      inset 0 0 24px #49c9dc24,
-      0 0 24px #55d9e8,
-      0 0 64px #55d9e8aa,
-      0 0 108px #a86af088,
+      inset 0 0 24px #ff573324,
+      0 0 24px #ff5733,
+      0 0 64px #ff5733aa,
+      0 0 108px #e21d48aa,
       0 28px 52px #000b;
   }
   .gc-shell.cs-car-catalog .gc-card[data-active]::before {
@@ -108,7 +108,7 @@ const csCarCatalogStyles = `
     border-width: 2px;
     background-size: 300% 300%;
     animation: cs-card-neon-flow 3.2s linear infinite;
-    filter: drop-shadow(0 0 16px #69dfeeff);
+    filter: drop-shadow(0 0 16px #ff684d);
   }
   .gc-shell.cs-car-catalog .gc-card-rarity {
     position: absolute;
@@ -156,8 +156,8 @@ const csCarCatalogStyles = `
     padding: 20px;
     align-items: stretch;
     font-family: "DM Sans", sans-serif;
-    border-top: 1px solid #ffffff20;
-    background: linear-gradient(112deg, #30343b 0%, #35495d 48%, #363047 100%);
+    border-top: 1px solid #ffb07836;
+    background: linear-gradient(112deg, #302d31 0%, #3b3034 48%, #3b2b34 100%);
     border-radius: 0;
     box-shadow: inset 0 1px 12px #ffffff0c;
     clip-path: polygon(0 12px, 16px 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%);
@@ -165,12 +165,34 @@ const csCarCatalogStyles = `
   .gc-shell.cs-car-catalog .gc-card-info .gc-card-copy {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto 1fr auto;
     column-gap: 14px;
     row-gap: 3px;
     align-items: center;
     align-content: stretch;
     width: 100%;
+  }
+  .gc-shell.cs-car-catalog .gc-card-specs {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    align-self: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 9px;
+    min-width: 0;
+  }
+  .gc-shell.cs-car-catalog .gc-card-specs > span {
+    display: inline-flex;
+    align-items: center;
+    color: #f1e7e2;
+    font-family: Manrope, "DM Sans", sans-serif;
+    font-size: 9px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
   .gc-shell.cs-car-catalog .gc-card-info strong {
     grid-column: 1;
@@ -186,12 +208,12 @@ const csCarCatalogStyles = `
   }
   .gc-shell.cs-car-catalog .gc-card[data-active] .gc-card-info strong {
     color: transparent;
-    background: linear-gradient(105deg, #f5fbff 10%, #75efff 38%, #c391ff 64%, #f7fbff 90%);
+    background: linear-gradient(105deg, #fff2dc 8%, #ffab55 36%, #ff543f 66%, #ffd17a 92%);
     background-size: 220% 100%;
     background-clip: text;
     -webkit-background-clip: text;
     animation: cs-neon-title-flow 4.5s ease-in-out infinite alternate;
-    filter: drop-shadow(0 0 7px #71e8ff66);
+    filter: drop-shadow(0 0 8px #ff694e99);
   }
   @keyframes cs-card-neon-flow {
     from { background-position: 0% 50%; }
@@ -202,10 +224,10 @@ const csCarCatalogStyles = `
     to { background-position: 100% 50%; }
   }
   .gc-shell.cs-car-catalog .gc-card-year { grid-column: 1; grid-row: 2; }
-  .gc-shell.cs-car-catalog .gc-card-location { grid-column: 1; grid-row: 3; align-self: end; }
+  .gc-shell.cs-car-catalog .gc-card-location { grid-column: 1; grid-row: 4; align-self: end; }
   .gc-shell.cs-car-catalog .gc-card-price {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 4;
     align-self: end;
     font-size: 22px;
     line-height: 1.05;
@@ -242,7 +264,7 @@ const csCarCatalogStyles = `
       height: calc(var(--gc-card-width) * 1.1 + 460px);
       top: 0;
     }
-    .gc-shell.cs-car-catalog .gc-bottom { margin-top: 50px; }
+    .gc-shell.cs-car-catalog .gc-bottom { margin-top: -80px; }
     .gc-shell.cs-car-catalog .gc-card { border-radius: 16px; }
     .gc-shell.cs-car-catalog .gc-card::before { border-radius: 13px; }
     .gc-shell.cs-car-catalog .gc-poster { aspect-ratio: 0.92; margin-bottom: -24px; }
@@ -254,7 +276,24 @@ const csCarCatalogStyles = `
     .gc-shell.cs-car-catalog .gc-card-year { font-size: 12px; }
     .gc-shell.cs-car-catalog .gc-card-location { font-size: 12px; }
     .gc-shell.cs-car-catalog .gc-card-price { font-size: 18px; }
+    .gc-shell.cs-car-catalog .gc-card-specs { gap: 8px; }
     .gc-shell.cs-car-catalog .gc-active-info p { font-size: 13px; }
+  }
+  @media (pointer: coarse) {
+    .gc-shell.cs-car-catalog .gc-card { will-change: auto; }
+    .gc-shell.cs-car-catalog .gc-card[data-active] {
+      box-shadow: inset 0 0 18px #ff573322, 0 0 24px #ff5733aa, 0 0 56px #e21d4877, 0 22px 38px #000b;
+    }
+    .gc-shell.cs-car-catalog .gc-card[data-active]::before {
+      animation: none;
+      filter: none;
+      background-position: 50% 50%;
+    }
+    .gc-shell.cs-car-catalog .gc-card[data-active] .gc-card-info strong {
+      animation: none;
+      filter: none;
+      background-position: 50% 50%;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .gc-shell.cs-car-catalog .gc-card[data-active]::before,
@@ -272,6 +311,7 @@ export interface GlassyCarouselItem {
   year?: string;
   location?: string;
   price?: string;
+  specs?: string[];
   image: string;
   accent?: string;
   description?: string;
@@ -726,6 +766,11 @@ export default function GlassyCarousel({
                     <strong>{item.title}</strong>
                     {item.year && (
                       <span className="gc-card-year">{item.year}</span>
+                    )}
+                    {item.specs && item.specs.length > 0 && (
+                      <span className="gc-card-specs" aria-label="Características do veículo">
+                        {item.specs.map((spec) => <span key={spec}>{spec}</span>)}
+                      </span>
                     )}
                     {item.location && (
                       <span className="gc-card-location">{item.location}</span>

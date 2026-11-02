@@ -68,7 +68,7 @@ create table public.referral_events(
 );
 create function public.register_garage() returns trigger language plpgsql security definer set search_path='' as $$
 begin
- insert into public.garages(owner_id,name,city,state,phone)
+ insert into public.garages(owner_id,name,city,state,phone,contact_email)
  values(new.id,trim(new.raw_user_meta_data->>'garage_name'),trim(new.raw_user_meta_data->>'city'),upper(new.raw_user_meta_data->>'state'),new.raw_user_meta_data->>'phone',new.email);
  return new;
 end;$$;

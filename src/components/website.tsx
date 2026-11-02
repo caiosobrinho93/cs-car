@@ -16,7 +16,6 @@ import GlassyCarousel, {
 import {
   Header,
   Footer,
-  DemoNotice,
   VehicleCard,
   VehicleDetails,
   FilterBar,
@@ -49,9 +48,11 @@ export default function Website({ shop = false }: { shop?: boolean }) {
     setFavorites(next);
     localStorage.setItem("cs-favorites", JSON.stringify(next));
   }
-  const list = filterVehicles(vehicles, filters, favorites);
-  const hasSampleListings = isDemo || vehicles.some(isSampleVehicle);
-  const carouselVehicles = [...vehicles]
+  const catalogVehicles = isDemo
+    ? []
+    : vehicles.filter((vehicle) => !isSampleVehicle(vehicle));
+  const list = filterVehicles(catalogVehicles, filters, favorites);
+  const carouselVehicles = [...catalogVehicles]
     .filter((vehicle) => vehicle.status === "available")
     .sort((a, b) => Number(b.featured) - Number(a.featured) || b.year - a.year)
     .slice(0, 30);
@@ -65,6 +66,9 @@ export default function Website({ shop = false }: { shop?: boolean }) {
       year: String(vehicle.year),
       location: `${vehicle.city}, ${vehicle.state}`,
       price: money(vehicle.price),
+      specs: [vehicle.body, vehicle.transmission, vehicle.fuel]
+        .filter((value) => value.trim())
+        .filter((value, index, values) => values.indexOf(value) === index),
       image: vehicle.images[0] || "/cars/hatch.webp",
       accent: vehicle.featured ? "#ff744b" : "#7f91aa",
       description: publicVehicleDescription(vehicle.description),
@@ -120,7 +124,7 @@ export default function Website({ shop = false }: { shop?: boolean }) {
               )}
             </div>
             <FilterBar
-              vehicles={vehicles}
+              vehicles={catalogVehicles}
               value={filters}
               onChange={setFilters}
             />
@@ -169,7 +173,6 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 </select>
               </label>
             </div>
-            <DemoNotice show={hasSampleListings} />
             {error ? (
               <div className="empty">
                 <p>{error}</p>
@@ -193,17 +196,33 @@ export default function Website({ shop = false }: { shop?: boolean }) {
             {!loading && !error && !list.length && (
               <div className="empty">
                 <Search size={36} />
-                <h3>Nenhum carro por aqui. Ainda.</h3>
+                <h3>
+                  {catalogVehicles.length
+                    ? "Nenhum carro por aqui. Ainda."
+                    : "Nossa primeira seleção está chegando."}
+                </h3>
                 <p>
-                  Experimente outros filtros ou conte para a CS Car o que você
-                  procura.
+                  {catalogVehicles.length
+                    ? "Experimente outros filtros ou fale com a CS Car sobre o carro que procura."
+                    : "Estamos conectando garagens da região. Fale com a CS Car e ajudamos você a encontrar o carro certo."}
                 </p>
-                <button
-                  className="btn dark"
-                  onClick={() => setFilters(emptyFilters)}
-                >
-                  Limpar filtros
-                </button>
+                {catalogVehicles.length ? (
+                  <button
+                    className="btn dark"
+                    onClick={() => setFilters(emptyFilters)}
+                  >
+                    Limpar filtros
+                  </button>
+                ) : (
+                  <a
+                    className="btn dark"
+                    href={whatsapp("Olá, CS Car! Quero encontrar um carro.")}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Falar com a CS Car <MessageCircle size={18} />
+                  </a>
+                )}
               </div>
             )}
             {!shop && (
@@ -233,7 +252,6 @@ export default function Website({ shop = false }: { shop?: boolean }) {
                 Abrir filtros da loja <ArrowUpRight size={20} />
               </Link>
             </div>
-            <DemoNotice show={hasSampleListings} />
             {loading ? (
               <div className="home-carousel-status" role="status">
                 Buscando veículos da rede…
@@ -280,7 +298,18 @@ export default function Website({ shop = false }: { shop?: boolean }) {
               />
             ) : (
               <div className="home-carousel-status" role="status">
-                Novos carros chegando em breve.
+                <p>
+                  Nossa primeira seleção está chegando. Estamos conectando
+                  garagens da região.
+                </p>
+                <a
+                  className="btn outline"
+                  href={whatsapp("Olá, CS Car! Quero encontrar um carro.")}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Falar com a CS Car <MessageCircle size={18} />
+                </a>
               </div>
             )}
           </section>

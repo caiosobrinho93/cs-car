@@ -25,26 +25,40 @@ export default function Hero() {
       target = 0,
       active = 0,
       last = -1,
+      seekFrame = 0,
+      queuedProgress = 0,
       queue: number[] = [],
       cleanup = () => {},
       refreshScroll = () => {},
       introFinishScheduled = false,
+      introRemoved = false,
       introExitTimer: number | undefined,
       introFinishTimer: number | undefined,
-      introSafetyTimer: number | undefined;
+      introSafetyTimer: number | undefined,
+      introHardStopTimer: number | undefined;
     const introStarted = performance.now(),
       reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches,
       introMobile = matchMedia("(max-width: 680px)").matches,
       initialFrames = new Set<number>(),
       originalHtmlOverflow = document.documentElement.style.overflow,
       originalBodyOverflow = document.body.style.overflow;
-    const cache = new Map<number, HTMLImageElement>(),
+    const copy = el.querySelector<HTMLElement>(".hero-copy"),
+      outro = el.querySelector<HTMLElement>(".hero-outro"),
+      cache = new Map<number, HTMLImageElement>(),
       pending = new Set<number>(),
       failed = new Set<number>();
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    function finishIntro() {
+      if (disposed || introRemoved) return;
+      introRemoved = true;
+      setIntroMounted(false);
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = originalBodyOverflow;
+      requestAnimationFrame(refreshScroll);
+    }
     function releaseIntro() {
-      if (disposed || introFinishScheduled) return;
+      if (disposed || introRemoved || introFinishScheduled) return;
       introFinishScheduled = true;
       const minDuration = reducedMotion ? 650 : INTRO_MIN_DURATION;
       const delay = Math.max(
@@ -52,15 +66,10 @@ export default function Hero() {
         minDuration - (performance.now() - introStarted),
       );
       introFinishTimer = window.setTimeout(() => {
-        if (disposed) return;
+        if (disposed || introRemoved) return;
         setIntroVisible(false);
         introExitTimer = window.setTimeout(
-          () => {
-            setIntroMounted(false);
-            document.documentElement.style.overflow = originalHtmlOverflow;
-            document.body.style.overflow = originalBodyOverflow;
-            requestAnimationFrame(refreshScroll);
-          },
+          finishIntro,
           reducedMotion ? 20 : introMobile ? 650 : 850,
         );
       }, delay);
@@ -70,9 +79,11 @@ export default function Hero() {
       initialFrames.add(n);
       if (initialFrames.size === INTRO_FRAMES) releaseIntro();
     }
-    introSafetyTimer = window.setTimeout(releaseIntro, 8000);
+    // Image decoding may stall on slow devices; never let it hold the overlay indefinitely.
+    introSafetyTimer = window.setTimeout(releaseIntro, 2600);
+    introHardStopTimer = window.setTimeout(finishIntro, 5000);
     const mobile = innerWidth < 760,
-      limit = mobile ? 20 : 30;
+      limit = mobile ? 12 : 30;
     function paint() {
       if (disposed || !cache.size) return;
       const n = cache.has(target)
@@ -92,7 +103,14 @@ export default function Hero() {
     }
     function pump() {
       while (
-        active < (target < INTRO_FRAMES ? 6 : 4) &&
+        active <
+          (mobile
+            ? target < INTRO_FRAMES
+              ? 3
+              : 2
+            : target < INTRO_FRAMES
+              ? 6
+              : 4) &&
         queue.length &&
         !disposed
       ) {
@@ -136,9 +154,7 @@ export default function Hero() {
       }
     }
     function seek(p: number) {
-      const intro = el.querySelector<HTMLElement>(".hero-copy"),
-        outro = el.querySelector<HTMLElement>(".hero-outro");
-      if (intro) intro.inert = p > 0.25;
+      if (copy) copy.inert = p > 0.25;
       if (outro) outro.inert = p < 0.65;
       target = Math.round(p * 99);
       el.dataset.requestedFrame = String(target + 1);
@@ -152,9 +168,18 @@ export default function Hero() {
       paint();
       pump();
     }
+    function scheduleSeek(p: number) {
+      queuedProgress = p;
+      if (seekFrame) return;
+      seekFrame = requestAnimationFrame(() => {
+        seekFrame = 0;
+        seek(queuedProgress);
+      });
+    }
     const resize = () => {
-      c.width = Math.round(c.clientWidth * Math.min(devicePixelRatio, 1.5));
-      c.height = Math.round(c.clientHeight * Math.min(devicePixelRatio, 1.5));
+      const pixelRatio = Math.min(devicePixelRatio, mobile ? 1.15 : 1.5);
+      c.width = Math.round(c.clientWidth * pixelRatio);
+      c.height = Math.round(c.clientHeight * pixelRatio);
       last = -1;
       paint();
     };
@@ -172,7 +197,7 @@ export default function Hero() {
             p: 1,
             ease: "none",
             onUpdate: () =>
-              seek(
+              scheduleSeek(
                 Math.min(
                   1,
                   (state.p * (FRAME_TRANSITIONS + FINAL_HOLD_FRAMES)) /
@@ -199,10 +224,12 @@ export default function Hero() {
       disposed = true;
       ro.disconnect();
       cleanup();
+      if (seekFrame) cancelAnimationFrame(seekFrame);
       cache.clear();
       window.clearTimeout(introFinishTimer);
       window.clearTimeout(introSafetyTimer);
       window.clearTimeout(introExitTimer);
+      window.clearTimeout(introHardStopTimer);
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.style.overflow = originalBodyOverflow;
     };
