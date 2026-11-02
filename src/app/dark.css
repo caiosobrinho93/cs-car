@@ -2874,7 +2874,9 @@ dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34
     visibility: visible;
     opacity: 1;
     flex: 0 0 46px;
-    position: relative;
-    z-index: 41;
+    position: fixed;
+    top: 15px;
+    right: 5%;
+    z-index: 50;
   }
 }
