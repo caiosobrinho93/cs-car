@@ -2828,6 +2828,8 @@ dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34
 .selected-features span { color: #ff916f; font-size: 15px; line-height: 1; }
 .vehicle-photo-row { margin-top: 10px; }
 .team-admin { display: grid; gap: 18px; }
+.team-load-state { margin: 12px 0; padding: 12px 14px; border: 1px solid #3c3d41; border-radius: 10px; color: #c4c7cd; background: #1a1b1d; font-size: 13px; line-height: 1.45; }
+.team-load-state.error { border-color: rgba(255, 104, 68, .45); color: #ffd0c4; background: rgba(255, 104, 68, .08); }
 .admin-panel { min-width: 0; padding: 18px; border: 1px solid #3d3e42; border-radius: 14px; background: linear-gradient(145deg,#26272a,#1d1e20); }
 .admin-panel .dashboard-section-title { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .admin-panel .dashboard-section-title span { color: #aeb0b5; font-size: 13px; }

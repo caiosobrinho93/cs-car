@@ -445,14 +445,30 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
   const [locations, setLocations] = useState<Garage[]>([]);
   const [state, setState] = useState("");
   const [busy, setBusy] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(true);
+  const [membersError, setMembersError] = useState("");
   async function load() {
-    const [{ data: { session } }, { data: places }] = await Promise.all([supabase!.auth.getSession(), supabase!.from("garages").select("*").order("name")]);
-    setLocations((places || []) as Garage[]);
-    if (!session) return;
-    const response = await fetch("/api/admin/invite", { headers: { authorization: `Bearer ${session.access_token}` } });
-    const result = await response.json();
-    if (response.ok) setMembers(result.members);
-    else notify(result.error || "Não foi possível carregar a equipe.");
+    setMembersLoading(true);
+    setMembersError("");
+    try {
+      const [{ data: { session }, error: sessionError }, { data: places, error: placesError }] = await Promise.all([
+        supabase!.auth.getSession(),
+        supabase!.from("garages").select("*").order("name"),
+      ]);
+      if (sessionError) throw sessionError;
+      if (placesError) throw new Error("Não foi possível carregar os locais físicos.");
+      setLocations((places || []) as Garage[]);
+      if (!session) throw new Error("Sessão encerrada. Entre novamente para gerenciar a equipe.");
+      const response = await fetch("/api/admin/invite", { headers: { authorization: `Bearer ${session.access_token}` } });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Não foi possível carregar a equipe.");
+      setMembers(result.members || []);
+    } catch (error) {
+      setMembers([]);
+      setMembersError(error instanceof Error ? error.message : "Não foi possível carregar a equipe.");
+    } finally {
+      setMembersLoading(false);
+    }
   }
   useEffect(() => { void load(); }, []);
   async function invite(event: React.FormEvent<HTMLFormElement>) {
@@ -483,7 +499,8 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
   }
   return <div className="team-admin">
     <section className="admin-panel"><div className="dashboard-section-title"><h2>Equipe CS Car</h2><span>Contas internas · comissão sobre o preço anunciado</span></div>
-      <form className="team-invite-form" onSubmit={invite}><input name="name" placeholder="Nome do vendedor" aria-label="Nome do vendedor" required maxLength={120}/><input name="email" placeholder="E-mail para convite" aria-label="E-mail do vendedor" type="email" required/><input name="commission" placeholder="Comissão %" aria-label="Comissão percentual" type="number" min="0" max="100" step="0.01" defaultValue="0" required/><button className="btn orange" disabled={busy}>{busy ? "Enviando…" : "Convidar"}</button></form>
+      {membersError ? <p className="team-load-state error" role="alert">{membersError}</p> : membersLoading ? <p className="team-load-state" role="status">Carregando equipe…</p> : members.length === 0 ? <p className="team-load-state">Nenhuma conta interna cadastrada. Convide o primeiro vendedor para começar.</p> : null}
+      <form className="team-invite-form" onSubmit={invite}><input name="name" placeholder="Nome do vendedor" aria-label="Nome do vendedor" required maxLength={120} disabled={busy || membersLoading || !!membersError}/><input name="email" placeholder="E-mail para convite" aria-label="E-mail do vendedor" type="email" required disabled={busy || membersLoading || !!membersError}/><input name="commission" placeholder="Comissão %" aria-label="Comissão percentual" type="number" min="0" max="100" step="0.01" defaultValue="0" required disabled={busy || membersLoading || !!membersError}/><button className="btn orange" disabled={busy || membersLoading || !!membersError}>{busy ? "Enviando…" : "Convidar"}</button></form>
       <div className="team-member-list">{members.map((member) => <article className="team-member" key={member.user_id}><div><strong>{member.display_name || member.email}</strong><small>{member.email} · {member.role === "admin" ? "Administrador" : "Vendedor"}</small></div>{member.role === "seller" && <><label className="team-permission"><input type="checkbox" checked={member.can_edit_vehicles} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, can_edit_vehicles:e.target.checked} : m))}/> Pode editar anúncios</label><input aria-label={`Comissão de ${member.display_name}`} type="number" min="0" max="100" step="0.01" value={member.commission_percent} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, commission_percent:Number(e.target.value)} : m))}/><button className="btn outline small" onClick={() => saveMember(member)}>Salvar</button></>}</article>)}</div>
     </section>
     <section className="admin-panel"><div className="dashboard-section-title"><h2>Locais dos veículos</h2><span>Locais físicos, sem contas de acesso</span></div>

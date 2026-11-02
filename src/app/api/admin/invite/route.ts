@@ -4,17 +4,27 @@ async function authorizedAdmin(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!url || !key || !token) return null;
+  if (!url || !key)
+    return Response.json(
+      { error: "Gestão da equipe indisponível. Configure SUPABASE_SERVICE_ROLE_KEY como variável privada de produção na Vercel e publique novamente." },
+      { status: 503 },
+    );
+  if (!token)
+    return Response.json({ error: "Sessão necessária." }, { status: 401 });
   const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: { user }, error } = await client.auth.getUser(token);
-  if (error || !user) return null;
+  if (error || !user)
+    return Response.json({ error: "Sessão inválida. Entre novamente." }, { status: 401 });
   const { data: member } = await client.from("team_members").select("role,active").eq("user_id", user.id).maybeSingle();
-  return member?.role === "admin" && member.active ? client : null;
+  if (member?.role !== "admin" || !member.active)
+    return Response.json({ error: "Apenas administradores ativos podem gerenciar a equipe." }, { status: 403 });
+  return client;
 }
 
 export async function GET(request: Request) {
-  const client = await authorizedAdmin(request);
-  if (!client) return Response.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
+  const access = await authorizedAdmin(request);
+  if (access instanceof Response) return access;
+  const client = access;
   const [{ data: members, error }, { data: authUsers }] = await Promise.all([
     client.from("team_members").select("*").order("created_at"),
     client.auth.admin.listUsers({ perPage: 1000 }),
@@ -24,8 +34,9 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const client = await authorizedAdmin(request);
-  if (!client) return Response.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
+  const access = await authorizedAdmin(request);
+  if (access instanceof Response) return access;
+  const client = access;
   const body = await request.json().catch(() => null) as { userId?: string; canEdit?: boolean; commissionPercent?: number; active?: boolean } | null;
   const pct = Number(body?.commissionPercent);
   if (!body?.userId || !Number.isFinite(pct) || pct < 0 || pct > 100) return Response.json({ error: "Dados inválidos." }, { status: 400 });
