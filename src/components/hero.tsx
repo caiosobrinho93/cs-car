@@ -200,9 +200,9 @@ export default function Hero() {
               trigger: el,
               start: "top top",
               end: "bottom bottom",
-              // A short scrub eases frame updates behind the user's scroll
-              // without making the hero feel detached from the gesture.
-              scrub: 0.75,
+              // Let the frame sequence settle more gradually behind the
+              // scroll gesture so the hero movement feels smoother.
+              scrub: 1.35,
             },
           });
           cleanup = () => {
