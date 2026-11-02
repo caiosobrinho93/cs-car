@@ -247,8 +247,7 @@ select {
 }
 .hero {
   margin-top: 0;
-  /* Slow the 196-frame sequence while ending precisely on its final frame. */
-  height: 720svh;
+  height: 100svh;
   --intro: 1;
   --middle: 0;
   --outro: 0;
@@ -259,12 +258,29 @@ select {
 }
 .hero-stage {
   height: 100svh;
-  position: sticky;
-  top: 0;
+  position: relative;
   overflow: hidden;
 }
+.hero-stage::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline: -1px;
+  bottom: -1px;
+  height: clamp(100px, 14vh, 160px);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    #090b0f08 18%,
+    #090b0f24 38%,
+    #090b0f66 62%,
+    #090b0fd9 84%,
+    #090b0f 100%
+  );
+}
 .hero-poster,
-.hero canvas,
+.hero-video,
 .hero-shade {
   position: absolute;
   inset: 0;
@@ -272,13 +288,18 @@ select {
   height: 100%;
   object-fit: cover;
 }
-.hero canvas {
+.hero-video {
+  z-index: 1;
+  object-fit: cover;
   opacity: 0;
+  transition: opacity 500ms ease;
+  pointer-events: none;
 }
-.hero[data-ready="true"] canvas {
+.hero-video.is-ready {
   opacity: 1;
 }
 .hero-shade {
+  z-index: 2;
   background:
     linear-gradient(
       90deg,
@@ -289,6 +310,7 @@ select {
     linear-gradient(0deg, #080f1cb3, transparent 35%, #0b121a33);
 }
 .hero-kicker {
+  z-index: 3;
   position: absolute;
   top: 6%;
   left: 6%;
@@ -308,6 +330,7 @@ select {
   box-shadow: 0 0 0 4px #ed5c3317;
 }
 .hero-copy {
+  z-index: 3;
   position: absolute;
   top: 23%;
   left: 6%;
@@ -383,6 +406,7 @@ select {
   pointer-events: auto;
 }
 .hero-bottom {
+  z-index: 3;
   position: absolute;
   bottom: 35px;
   left: 6%;
@@ -2132,11 +2156,8 @@ td {
     justify-content: space-between;
     padding: 15px;
   }
-  .hero {
-    height: 600svh;
-  }
   .hero-stage {
-    height: 100svh;
+    height: 108svh;
   }
   .hero-kicker {
     top: 5%;
@@ -2681,6 +2702,12 @@ td {
   }
   .auth-layout .text-link {
     margin-top: 20px;
+  }
+}
+@media (max-width: 759px) {
+  .hero,
+  .hero-stage {
+    height: 108svh;
   }
 }
 @media (prefers-reduced-motion: reduce) {

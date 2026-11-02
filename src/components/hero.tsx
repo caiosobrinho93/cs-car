@@ -1,230 +1,94 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-const FRAME_COUNT = 196;
-const FRAME_TRANSITIONS = FRAME_COUNT - 1;
-const INTRO_FRAMES = 8;
+
 const INTRO_LOADER_DURATION = 2000;
 const INTRO_LOGO_FADE_IN = 600;
 const INTRO_LOGO_HOLD = 2100;
 const INTRO_LOGO_FADE_OUT = 500;
 const INTRO_BLACK_HOLD = 300;
 const INTRO_SCREEN_FADE_OUT = 500;
+
 export default function Hero() {
-  const host = useRef<HTMLElement>(null),
-    canvas = useRef<HTMLCanvasElement>(null);
-  const [introMounted, setIntroMounted] = useState(true),
-    [introVisible, setIntroVisible] = useState(true);
+  const host = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [introMounted, setIntroMounted] = useState(true);
+  const [introVisible, setIntroVisible] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
+
   useEffect(() => {
-    const el = host.current!,
-      c = canvas.current!,
-      ctx = c.getContext("2d", { alpha: false });
-    if (!ctx) {
-      setIntroVisible(false);
-      setIntroMounted(false);
-      return;
+    const el = host.current;
+    const currentVideo = videoRef.current;
+    if (!el || !currentVideo) return;
+    const video: HTMLVideoElement = currentVideo;
+
+    let disposed = false;
+    let introRemoved = false;
+    let introExitTimer: number | undefined;
+    let introTimelineTimer: number | undefined;
+    let introHardStopTimer: number | undefined;
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalBodyOverflow = document.body.style.overflow;
+    let isVisible = false;
+
+    function playVideo() {
+      if (disposed || reducedMotion || !isVisible) return;
+      if (!video.src) {
+        video.src = "/videos/cs-car-hero.mp4";
+        video.load();
+      }
+      void video.play().catch(() => setVideoReady(false));
     }
-    let disposed = false,
-      target = 0,
-      active = 0,
-      last = -1,
-      seekFrame = 0,
-      queuedProgress = 0,
-      queue: number[] = [],
-      cleanup = () => {},
-      refreshScroll = () => {},
-      introRemoved = false,
-      introExitTimer: number | undefined,
-      introTimelineTimer: number | undefined,
-      introHardStopTimer: number | undefined;
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches,
-      originalHtmlOverflow = document.documentElement.style.overflow,
-      originalBodyOverflow = document.body.style.overflow;
-    const copy = el.querySelector<HTMLElement>(".hero-copy"),
-      middle = el.querySelector<HTMLElement>(".hero-middle"),
-      outro = el.querySelector<HTMLElement>(".hero-outro"),
-      cache = new Map<number, HTMLImageElement>(),
-      pending = new Set<number>(),
-      failed = new Set<number>();
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
+
     function finishIntro() {
       if (disposed || introRemoved) return;
       introRemoved = true;
       setIntroMounted(false);
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.style.overflow = originalBodyOverflow;
-      requestAnimationFrame(refreshScroll);
     }
-    const motionScale = reducedMotion ? 0 : 1;
+
     const introBeforeScreenFade =
       INTRO_LOADER_DURATION +
       INTRO_LOGO_FADE_IN +
       INTRO_LOGO_HOLD +
       INTRO_LOGO_FADE_OUT +
       INTRO_BLACK_HOLD;
-    introTimelineTimer = window.setTimeout(
-      () => {
-        if (disposed || introRemoved) return;
-        setIntroVisible(false);
-        introExitTimer = window.setTimeout(
-          finishIntro,
-          motionScale ? INTRO_SCREEN_FADE_OUT : 20,
-        );
-      },
-      motionScale
-        ? introBeforeScreenFade
-        : 20,
-    );
-    // Failsafe in case a browser suspends animation timers while the tab is idle.
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    introTimelineTimer = window.setTimeout(() => {
+      if (disposed || introRemoved) return;
+      setIntroVisible(false);
+      introExitTimer = window.setTimeout(finishIntro, reducedMotion ? 20 : INTRO_SCREEN_FADE_OUT);
+    }, reducedMotion ? 20 : introBeforeScreenFade);
+    // Failsafe if the browser suspends animation timers while the tab is idle.
     introHardStopTimer = window.setTimeout(
       finishIntro,
       introBeforeScreenFade + INTRO_SCREEN_FADE_OUT + 1000,
     );
-    const mobile = innerWidth < 760,
-      limit = mobile ? 12 : 30;
-    function paint() {
-      if (disposed || !cache.size) return;
-      const n = cache.has(target)
-        ? target
-        : [...cache.keys()].sort(
-            (a, b) => Math.abs(a - target) - Math.abs(b - target),
-          )[0];
-      if (n === last) return;
-      const img = cache.get(n)!;
-      const scale = Math.max(c.width / img.width, c.height / img.height);
-      const w = img.width * scale,
-        h = img.height * scale;
-      ctx!.drawImage(img, (c.width - w) * 0.5, (c.height - h) * 0.5, w, h);
-      last = n;
-      el.dataset.frame = String(n + 1);
-      el.dataset.ready = "true";
-    }
-    function pump() {
-      while (
-        active <
-          (mobile
-            ? target < INTRO_FRAMES
-              ? 3
-              : 2
-            : target < INTRO_FRAMES
-              ? 6
-              : 4) &&
-        queue.length &&
-        !disposed
-      ) {
-        const n = queue.shift()!;
-        if (cache.has(n) || pending.has(n) || failed.has(n)) continue;
-        active++;
-        pending.add(n);
-        const img = new Image();
-        img.decoding = "async";
-        img.fetchPriority = n < INTRO_FRAMES ? "high" : "auto";
-        const finish = () => {
-          active--;
-          pending.delete(n);
-          pump();
-        };
-        img.onload = () => {
-          void img
-            .decode()
-            .catch(() => {})
-            .then(() => {
-              if (!disposed) {
-                cache.set(n, img);
-                if (cache.size > limit) {
-                  const far = [...cache.keys()].sort(
-                    (a, b) => Math.abs(b - target) - Math.abs(a - target),
-                  )[0];
-                  cache.delete(far);
-                }
-                paint();
-              }
-              finish();
-            });
-        };
-        img.onerror = () => {
-          failed.add(n);
-          finish();
-        };
-        img.src = `/sequence/${mobile ? "mobile" : "desktop"}/${String(n + 1).padStart(3, "0")}.webp`;
-      }
-    }
-    function seek(p: number) {
-      if (copy) copy.inert = p > 0.25;
-      if (middle) middle.inert = p < 0.28 || p > 0.68;
-      if (outro) outro.inert = p < 0.65;
-      target = Math.min(FRAME_TRANSITIONS, Math.round(p * FRAME_TRANSITIONS));
-      el.dataset.requestedFrame = String(target + 1);
-      el.style.setProperty("--progress", String(p));
-      el.style.setProperty("--intro", String(Math.max(0, 1 - p * 4)));
-      const middleOpacity = Math.max(
-        0,
-        Math.min(1, (p - 0.28) / 0.08, (0.68 - p) / 0.08),
-      );
-      el.style.setProperty("--middle", String(middleOpacity));
-      el.style.setProperty("--outro", String(Math.max(0, (p - 0.65) / 0.35)));
-      queue = [];
-      for (let d = 0; d < 10; d++)
-        for (const n of d ? [target + d, target - d] : [target])
-          if (n >= 0 && n < FRAME_COUNT) queue.push(n);
-      paint();
-      pump();
-    }
-    function scheduleSeek(p: number) {
-      queuedProgress = p;
-      if (seekFrame) return;
-      seekFrame = requestAnimationFrame(() => {
-        seekFrame = 0;
-        seek(queuedProgress);
-      });
-    }
-    const resize = () => {
-      const pixelRatio = Math.min(devicePixelRatio, mobile ? 1.15 : 1.5);
-      c.width = Math.round(c.clientWidth * pixelRatio);
-      c.height = Math.round(c.clientHeight * pixelRatio);
-      last = -1;
-      paint();
-    };
-    const ro = new ResizeObserver(resize);
-    ro.observe(c);
-    resize();
-    seek(0);
-    if (!reducedMotion) {
-      Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
-        ([{ gsap }, { ScrollTrigger }]) => {
-          if (disposed) return;
-          gsap.registerPlugin(ScrollTrigger);
-          const state = { p: 0 };
-          const tween = gsap.to(state, {
-            p: 1,
-            ease: "none",
-            onUpdate: () => scheduleSeek(state.p),
-            scrollTrigger: {
-              trigger: el,
-              start: "top top",
-              end: "bottom bottom",
-              // Let the frame sequence settle more gradually behind the
-              // scroll gesture so the hero movement feels smoother.
-              scrub: 1.35,
-            },
-          });
-          cleanup = () => {
-            tween.scrollTrigger?.kill();
-            tween.kill();
-          };
-          refreshScroll = () => ScrollTrigger.refresh();
-          ScrollTrigger.refresh();
-        },
-      );
-    }
+
+    const onPlaying = () => setVideoReady(true);
+    const onError = () => setVideoReady(false);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("error", onError);
+
+    const visibility = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) playVideo();
+      else video.pause();
+    }, { threshold: 0.01 });
+    visibility.observe(el);
+
     return () => {
       disposed = true;
-      ro.disconnect();
-      cleanup();
-      if (seekFrame) cancelAnimationFrame(seekFrame);
-      cache.clear();
+      visibility.disconnect();
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("error", onError);
+      video.pause();
       window.clearTimeout(introTimelineTimer);
       window.clearTimeout(introExitTimer);
       window.clearTimeout(introHardStopTimer);
@@ -232,22 +96,28 @@ export default function Hero() {
       document.body.style.overflow = originalBodyOverflow;
     };
   }, []);
+
   return (
-    <section ref={host} className="hero" data-frame="1">
+    <section ref={host} className="hero">
       <div className="hero-stage">
         <picture className="hero-poster-frame">
-          <source
-            media="(max-width: 759px)"
-            srcSet="/sequence/mobile/001.webp"
-          />
           <img
             className="hero-poster"
-            src="/sequence/desktop/001.webp"
-            alt="Carro esportivo em uma garagem iluminada"
+            src="/videos/cs-car-hero-poster.webp"
+            alt=""
             fetchPriority="high"
+            aria-hidden="true"
           />
         </picture>
-        <canvas ref={canvas} aria-hidden="true" />
+        <video
+          ref={videoRef}
+          className={`hero-video${videoReady ? " is-ready" : ""}`}
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-hidden="true"
+        />
         <div className="hero-shade" />
         <div className="hero-kicker">
           <span className="live-dot" /> CONECTANDO PESSOAS. MOVENDO HISTÓRIAS.
@@ -265,29 +135,6 @@ export default function Hero() {
           </p>
           <Link className="btn light" href="/loja">
             Encontre seu próximo carro <ArrowUpRight size={19} />
-          </Link>
-        </div>
-        <div className="hero-middle" inert>
-          <p className="eyebrow">A CONEXÃO QUE MOVE VOCÊ</p>
-          <h2>
-            Seu próximo carro.
-            <br />
-            <em>Do jeito certo.</em>
-          </h2>
-          <p>Boas oportunidades, pessoas certas e uma escolha feita com confiança.</p>
-          <Link href="/loja" className="btn light">
-            Explore os veículos <ArrowUpRight size={19} />
-          </Link>
-        </div>
-        <div className="hero-outro" inert>
-          <p className="eyebrow">SEU PRÓXIMO DESTINO COMEÇA AQUI</p>
-          <h2>
-            Boas conexões.
-            <br />
-            <em>Novos caminhos.</em>
-          </h2>
-          <Link href="/loja" className="btn orange">
-            Explore a loja <ArrowUpRight size={19} />
           </Link>
         </div>
         <div className="hero-bottom">

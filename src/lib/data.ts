@@ -335,9 +335,9 @@ export const demoVehicles: Vehicle[] = [
     color: "Cinza",
     city: "Catanduva",
     images: [
-      "/sequence/desktop/001.webp",
-      "/sequence/desktop/050.webp",
-      "/sequence/desktop/100.webp",
+      "/images/demo/civic-01.webp",
+      "/images/demo/civic-02.webp",
+      "/images/demo/civic-03.webp",
     ],
     partner_fee: 3500,
     platform_fee: 900,

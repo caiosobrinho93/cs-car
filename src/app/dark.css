@@ -161,12 +161,15 @@ textarea:focus {
   top: 12%;
 }
 .hero-bottom {
-  justify-content: center;
+  justify-content: flex-start;
 }
 .hero-bottom a {
   font-family: "Rajdhani", sans-serif;
   font-size: 13px;
   letter-spacing: 0.14em;
+}
+@media (max-width: 680px) {
+  .hero-bottom a { font-size: 11px; gap: 7px; }
 }
 .nav,
 .nav a {
@@ -267,7 +270,7 @@ textarea:focus {
   inset: 0;
   background-image:
     linear-gradient(90deg, #05070bd9 0%, #05070b91 42%, #05070b20 75%),
-    url("/sequence/desktop/075.webp");
+    url("/images/demo/street-banner.webp");
   background-size: cover;
   background-position: center 58%;
   filter: saturate(0.85) contrast(1.08);
@@ -473,6 +476,8 @@ select option {
   pointer-events: none;
   background:
     radial-gradient(ellipse at 50% 45%, #29354a70, transparent 62%), #090b0f;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 180px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 180px);
 }
 .home-carousel-video::after {
   position: absolute;
@@ -499,12 +504,11 @@ select option {
 }
 @media (max-width: 767px), (pointer: coarse) {
   .home-carousel-video {
-    background:
-      linear-gradient(180deg, #090b0f20, #090b0f30),
-      url("/images/cs-car-mobile-wallpaper.webp") center 58% / cover no-repeat;
+    background: #090b0f;
   }
   .home-carousel-video video {
-    display: none;
+    object-position: center;
+    opacity: 0.78;
   }
 }
 .home-carousel-section > :not(.home-carousel-video) {
@@ -2732,4 +2736,157 @@ dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34
     right: 5%;
     z-index: 50;
   }
+}
+
+/* Loja: polish the intro and keep the inventory cards crisp and compact. */
+.shop-page .shop-intro {
+  isolation: isolate;
+  padding: clamp(48px, 7vw, 88px) 6% clamp(50px, 7vw, 82px);
+  border-bottom: 1px solid #ffffff12;
+  background:
+    radial-gradient(ellipse at 78% 48%, #f2653b1a, transparent 34%),
+    radial-gradient(ellipse at 88% 8%, #7d5cff14, transparent 35%),
+    linear-gradient(125deg, #15171b 0%, #1c1d22 52%, #111317 100%);
+}
+.shop-page .shop-intro::before {
+  position: absolute;
+  z-index: -1;
+  right: 7%;
+  bottom: 0;
+  width: min(36vw, 470px);
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, #fa714c99, #a783ff88, transparent);
+  box-shadow: 0 0 28px #f2653b40;
+}
+.shop-page .breadcrumbs {
+  margin-bottom: clamp(28px, 4vw, 46px);
+  color: #aeb1ba;
+  font-size: 13px;
+}
+.shop-page .breadcrumbs a { color: #f1f1f3; }
+.shop-page .shop-intro .eyebrow {
+  color: #ff9478;
+  font-size: 12px;
+  letter-spacing: .16em;
+}
+.shop-page .shop-intro h1 {
+  position: relative;
+  z-index: 1;
+  max-width: 13ch;
+  margin: 14px 0 12px;
+  color: #f3f3f5;
+  font-size: clamp(42px, 5.3vw, 70px);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+.shop-page .shop-intro h1 em {
+  color: #ff805b;
+  font-style: normal;
+}
+.shop-page .shop-intro > p:last-of-type {
+  position: relative;
+  z-index: 1;
+  max-width: 48ch;
+  margin: 0;
+  color: #c5c7ce;
+  font-size: 16px;
+}
+.shop-page .shop-decoration {
+  z-index: 0;
+  top: 23%;
+  right: 7%;
+  color: #ffffff08;
+  font-size: clamp(150px, 19vw, 240px);
+  letter-spacing: -.12em;
+  pointer-events: none;
+}
+.shop-page .shop-decoration > span { color: #ff805b12; }
+.shop-page .catalog-toolbar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.shop-page .body-tabs button {
+  min-height: 42px;
+  padding: 8px 20px;
+  font-size: 14px;
+}
+.shop-page .saved-filter {
+  min-height: 42px;
+  padding: 0 4px;
+  color: #c8c9ce;
+  font-size: 14px;
+}
+.shop-page .car-photo {
+  padding: 0 7px;
+  aspect-ratio: 1.68;
+  background: #111317;
+}
+.shop-page .car-photo .image-button {
+  overflow: hidden;
+  border-radius: 10px;
+}
+.shop-page .car-photo img { border-radius: inherit; }
+.shop-page .car-info {
+  padding: 11px 16px 15px;
+}
+.shop-page .car-title { min-height: 55px; }
+.shop-page .car-title button {
+  min-height: 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.shop-page .car-title button > span {
+  color: #aeb3bf;
+  font-size: 11px;
+  letter-spacing: .13em;
+}
+.shop-page .car-title h3 {
+  margin-top: 1px;
+  font-size: clamp(27px, 2.25vw, 33px);
+  line-height: 1.08;
+}
+.shop-page .car-year {
+  color: #e3e4e8;
+  border-color: #ffffff24;
+}
+@media (max-width: 680px) {
+  .shop-page .shop-intro {
+    padding: 38px 6% 46px;
+  }
+  .shop-page .shop-intro h1 { font-size: clamp(38px, 10vw, 52px); }
+  .shop-page .shop-intro > p:last-of-type { font-size: 15px; }
+  .shop-page .car-title h3 { font-size: clamp(25px, 7vw, 30px); }
+  .shop-page .shop-decoration {
+    top: 30%;
+    right: 2%;
+    font-size: 120px;
+  }
+  .shop-page .body-tabs { gap: 6px; }
+  .shop-page .body-tabs button { min-height: 40px; padding: 7px 13px; }
+  .shop-page .saved-filter { font-size: 12px; }
+}
+
+@media (max-width: 900px) {
+  .shop-page .car-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(270px, 78vw, 360px);
+    grid-template-columns: none;
+    gap: 16px;
+    width: calc(100% + 12%);
+    margin-inline: -6%;
+    padding: 12px 6% 30px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shop-page .car-grid::-webkit-scrollbar { display: none; }
+  .shop-page .car-card { min-width: 0; scroll-snap-align: start; }
 }
