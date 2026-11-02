@@ -18,11 +18,12 @@
 - Produção: `https://cs-car-alpha.vercel.app/` retorna HTTP 200, o título e a hero são renderizados, e os frames 001/196 desktop/mobile retornam HTTP 200 como `image/webp`.
 - Commit anterior publicado: `ed419f6` (`Smooth hero frame scroll response`); Vercel marcou a implantação de produção como `READY` e atribuiu o alias `cs-car-alpha.vercel.app`.
 - Painel Supabase hospedado: migrações `20261102171304`, `20261102172037` e `20261102172132` aparecem no histórico.
-- Banco consultado após arquivar os anúncios de teste: 1 membro administrador, 0 vendedores, 2 locais ativos e 4 veículos em rascunho; 0 veículos disponíveis para a vitrine.
+- Banco consultado: 1 membro administrador, 0 vendedores, 2 locais com `active=true` (1 aprovado e 1 pendente) e 4 veículos em rascunho; 0 veículos disponíveis para a vitrine. Três rascunhos usam o local aprovado; um está associado ao local pendente.
 - Advisor de segurança: resta somente `auth_leaked_password_protection`, indisponível no plano Free escolhido.
 - Vercel Production: estão cadastradas apenas `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; `SUPABASE_SERVICE_ROLE_KEY` não está configurada.
 - Supabase Auth SMTP: SMTP personalizado está habilitado, mas remetente, host, usuário e senha estão vazios; convites e recuperação de senha por e-mail não podem funcionar ainda.
 - Atualização de diagnóstico: commit `535e6af` implantado em Production como `READY`, alias `cs-car-alpha.vercel.app`. Homepage respondeu HTTP 200; `GET /api/admin/invite` respondeu HTTP 503 com instrução para configurar a chave ausente. No dashboard autenticado, o aviso fica visível e os controles de convite permanecem desativados.
+- Segurança dos locais: a interface diferencia local aprovado, pendente e inativo; só locais aprovados e ativos podem ser associados a anúncios. O local pendente e seu rascunho foram preservados.
 
 ## Pendente para operação pública
 

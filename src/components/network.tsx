@@ -85,7 +85,7 @@ export default function Network() {
     } = await supabase.auth.getUser();
     if (user) {
       const [{ data: locations }, { data: member }, { data: isAdmin }] = await Promise.all([
-        supabase.from("garages").select("*").eq("active", true).order("name"),
+        supabase.from("garages").select("*").eq("status", "approved").eq("active", true).order("name"),
         supabase.from("team_members").select("user_id,role,active,display_name,can_edit_vehicles,commission_percent").eq("user_id", user.id).maybeSingle(),
         supabase.rpc("is_admin"),
       ]);
@@ -505,7 +505,7 @@ function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (messag
     </section>
     <section className="admin-panel"><div className="dashboard-section-title"><h2>Locais dos veículos</h2><span>Locais físicos, sem contas de acesso</span></div>
       <form className="location-form" onSubmit={addLocation}><input name="name" placeholder="Nome do local/garagem" aria-label="Nome do local" required/><input name="address" placeholder="Endereço ou referência" aria-label="Endereço"/><div className="form-grid"><select name="state" aria-label="Estado" required value={state} onChange={(e)=>setState(e.target.value)}><option value="">Estado</option>{BR_STATES.map((uf)=><option key={uf}>{uf}</option>)}</select><select name="city" aria-label="Cidade" required disabled={!state}><option value="">Cidade</option>{(CITIES_BY_STATE[state]||[]).map((city)=><option key={city}>{city}</option>)}</select></div><input name="phone" placeholder="WhatsApp do local (opcional)" aria-label="WhatsApp do local"/><input name="email" placeholder="E-mail do local (opcional)" aria-label="E-mail do local" type="email"/><input name="notes" placeholder="Observações (opcional)" aria-label="Observações"/><button className="btn orange">Adicionar local</button></form>
-      <div className="team-member-list">{locations.map((place)=><article className="team-member" key={place.id}><div><strong>{place.name}</strong><small>{place.address ? `${place.address} · ` : ""}{place.city}, {place.state}{place.phone ? ` · ${place.phone}` : ""}</small></div><span className={place.active ? "status paid" : "status draft"}>{place.active ? "Ativo" : "Inativo"}</span><button type="button" className="btn outline small" onClick={() => void toggleLocation(place)}>{place.active ? "Desativar" : "Ativar"}</button></article>)}</div>
+      <div className="team-member-list">{locations.map((place)=><article className="team-member" key={place.id}><div><strong>{place.name}</strong><small>{place.address ? `${place.address} · ` : ""}{place.city}, {place.state}{place.phone ? ` · ${place.phone}` : ""}</small></div><span className={place.active && place.status === "approved" ? "status paid" : "status draft"}>{place.active === false ? "Inativo" : place.status === "approved" ? "Aprovado" : "Pendente"}</span><button type="button" className="btn outline small" onClick={() => void toggleLocation(place)}>{place.active === false ? "Ativar" : "Desativar"}</button></article>)}</div>
     </section>
   </div>;
 }
@@ -793,7 +793,7 @@ function VehicleForm({
           <div className="form-grid vehicle-grid">
                 <select name="garage_id" value={locationId} aria-label="Local do veículo" required onChange={(event) => setLocationId(event.target.value)}>
                   <option value="" disabled>Local do veículo</option>
-                  {locations.filter((place) => place.active !== false).map((place) => <option key={place.id} value={place.id}>{place.name} · {place.city}, {place.state}</option>)}
+                  {locations.filter((place) => place.active !== false && place.status === "approved").map((place) => <option key={place.id} value={place.id}>{place.name} · {place.city}, {place.state}</option>)}
                 </select>
                 <select
                   name="brand"
@@ -909,6 +909,7 @@ function VehicleForm({
                   ],
                 ].map(([name, label, opts]) => (
                   <select
+                    key={name as string}
                     name={name as string}
                     aria-label={label as string}
                     required
