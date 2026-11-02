@@ -13,39 +13,38 @@ npm run dev -- --port 3001
 
 - `/`: hero com 100 frames ligados à rolagem, apresentação e vitrine.
 - `/loja`: catálogo, filtros, favoritos, detalhes e WhatsApp.
-- `/rede`: painel de parceiros e administração.
+- `/rede`: painel interno da CS Car para administração, vendedores e locais físicos.
 
-Sem as duas variáveis do Supabase, o sistema usa uma demonstração explícita, com dados fictícios salvos no navegador. A opção “Ver como” alterna entre João, Marcelo e Avenida Motors. “Restaurar exemplos” restaura apenas os exemplos locais da rede. Não há autenticação, compartilhamento entre dispositivos nem pagamentos reais no modo de demonstração.
+Sem as variáveis públicas do Supabase, o sistema usa uma demonstração explícita, com dados fictícios salvos apenas no navegador. O modo de demonstração não cria contas, compartilha dados entre dispositivos nem registra pagamentos reais.
 
 ## Supabase
 
-1. Crie um projeto novo. Execute `supabase/001_initial.sql` uma única vez no SQL Editor. Este arquivo substitui o rascunho inicial da conversa; se você executou aquele rascunho, será necessária uma migração específica antes de usar o novo SQL.
-2. Copie `.env.example` para `.env.local` e preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` com a URL e chave pública do projeto. Não use `service_role` no navegador.
-3. Configure a URL do site e os redirecionamentos em Supabase Auth; mantenha confirmação de e-mail habilitada. Cadastre sua conta pela tela `/rede`, incluindo os dados da garagem. O trigger cria uma garagem pendente; criar contas diretamente no painel exige os mesmos metadados.
-4. Promova sua conta a administradora pelo SQL Editor, substituindo o UUID nos dois comandos comentados ao final do SQL. A administração passa a mostrar “Aprovar parceiros”.
-5. Valide com duas contas reais: aprovação, login, upload, anúncio, indicação, visita, venda, recebimento do parceiro e recebimento CS Car.
+1. O projeto Supabase hospedado já contém a migração da equipe interna e os dois ajustes de segurança/índices, aplicados em 02/11/2026. Para uma instalação nova, aplique primeiro os scripts base `supabase/001_initial.sql` e `supabase/002_garage_contact_email.sql`, depois todos os arquivos de `supabase/migrations/` em ordem de nome. Não reaplique migrações já registradas no histórico do banco.
+2. Copie `.env.example` para `.env.local` e preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. A chave `SUPABASE_SERVICE_ROLE_KEY` é necessária somente para convites; mantenha-a apenas no servidor, como variável sem prefixo `NEXT_PUBLIC_`.
+3. Configure em Supabase Auth a URL do site e os redirecionamentos para `/rede`. A migração bloqueia cadastro público: novas contas entram por convite de administrador.
+4. Configure SMTP de produção em Supabase Auth para que os convites cheguem aos vendedores. O Gmail temporário ainda precisa ser configurado no provedor; nenhuma senha de e-mail deve ser colocada no frontend ou no Git.
+5. Entre com a conta administradora existente. Ela recebe o perfil interno de administrador pela migração. No painel, convide vendedores, defina a comissão de cada um e habilite a permissão de edição quando necessário. O padrão de vendedor é somente consulta.
+6. Cadastre os locais físicos e associe cada anúncio a um local. O preço anunciado é único; a comissão do vendedor é calculada sobre esse valor e fica em tabela privada.
 
-O banco separa dados públicos dos valores de comissão. Escritas comerciais passam por funções transacionais com verificação de autoria, aprovação e transição. O preço e as comissões da indicação são preservados mesmo que o anúncio mude. Uma venda encerra outras indicações abertas para o mesmo veículo. Eventos são registrados em `referral_events`.
+O banco separa dados do catálogo dos valores de comissão. Apenas o administrador cria ou desativa locais. As gravações de anúncios validam equipe, permissão de edição e local ativo; o catálogo público só lê veículos disponíveis e nome do local. As estruturas antigas de indicações permanecem no banco para preservar os dados legados, mas não fazem parte do fluxo da equipe interna.
 
-Cada conta representa uma garagem nesta versão. Equipes com vários vendedores dentro da mesma garagem ainda não foram implementadas. As comissões são valores fixos em reais por anúncio, configuráveis no formulário; uma tabela comercial obrigatória da CS Car ainda precisa ser definida. O status “Comissão recebida” corresponde ao parceiro; a CS Car confirma seu recebimento separadamente como administradora. O sistema registra pagamentos feitos fora da plataforma, sem transferir dinheiro ou garantir comissões.
-
-Fotos ficam em bucket público e devem conter apenas imagens dos veículos. Novos uploads substituem a galeria do anúncio; arquivos antigos não são removidos automaticamente. Não envie documentos de compradores. Publicação de anúncios depende da garagem estar aprovada. O contato dos compradores é visível apenas às garagens envolvidas e à administração.
+As contas pertencem à equipe interna (administrador e vendedores); locais não têm login. A comissão é percentual e individual por vendedor, calculada sobre o preço anunciado. O painel não movimenta dinheiro. Fotos ficam em bucket público e devem conter apenas imagens dos veículos. Novos uploads substituem a galeria do anúncio; arquivos antigos não são removidos automaticamente.
 
 ## GitHub e Vercel
 
-Código preparado, sem repositório remoto criado e sem deploy realizado.
+O projeto está ligado ao GitHub e à Vercel. Este trabalho permanece local e não foi publicado.
 
 1. Crie ou indique o repositório GitHub e envie o projeto (sem `.env.local`).
 2. Importe o repositório na Vercel, framework Next.js, instalação `npm ci`, build `npm run build` e Node.js 22+.
-3. Cadastre as duas variáveis públicas do Supabase na Vercel e faça um novo deploy.
-4. Atualize Site URL e Redirect URLs no Supabase Auth para o domínio final.
+3. Cadastre URL e chave pública do Supabase na Vercel. Adicione também `SUPABASE_SERVICE_ROLE_KEY` e `NEXT_PUBLIC_SITE_URL` para o endpoint de convites.
+4. Configure SMTP e atualize Site URL e Redirect URLs no Supabase Auth para o domínio final.
 5. O workflow `.github/workflows/ci.yml` executa verificações de tipos, testes SQL locais e build.
 
 ## Imagens e hero
 
-Originais: pasta `frames_Camera_panning_around_sports_car_70b05187` no Desktop. Foram encontrados 120 frames; selecionamos 100 uniformemente, incluindo início e fim, sem modificar os originais. `public/sequence/manifest.json` registra o mapeamento. Para gerar novamente: `npm run frames` (ou `node scripts/prepare-frames.mjs CAMINHO_DA_PASTA`).
+Originais: pasta `frames_test2` no Desktop. A sequência atual contém 196 frames. `public/sequence/manifest.json` registra o mapeamento. Para regenerar desktop e mobile com compressão WebP: `npm run frames` (ou `node scripts/prepare-frames.mjs CAMINHO_DA_PASTA`). O comando padrão usa `Desktop/frames_test2`.
 
-Desktop 1280 px, mobile 768 px. O canvas usa fila de carregamento e cache limitado de imagens decodificadas; a rolagem avança e retrocede. Preferência por movimento reduzido apresenta imagem estática. As fotos da loja são ilustrativas e não representam necessariamente o modelo cadastrado. Fontes de fotos: `public/cars/sources.json`; frames fornecidos pelo usuário. Tipografia via Google Fonts com fallback local.
+Desktop 1280 px, mobile 768 px. O canvas usa fila de carregamento e cache limitado de imagens decodificadas; a rolagem avança e retrocede. Preferência por movimento reduzido apresenta imagem estática. As fotos de catálogo só são reais quando enviadas no anúncio; não há veículos ativos no banco nesta revisão. Fontes das imagens ilustrativas de catálogo: `public/cars/sources.json`; frames fornecidos pelo usuário. Tipografia via Google Fonts com fallback local.
 
 ## Verificação
 
@@ -59,9 +58,11 @@ Os testes SQL usam PostgreSQL via PGlite, com Auth/Storage simulados; não subst
 
 ## Pendências para operação real
 
-- Credenciais e validação do Supabase, repositório GitHub e publicação Vercel.
-- E-mail comercial: ainda não fornecido, portanto não há formulário ou envio de e-mail fictício.
-- Regras definitivas de comissão da CS Car, condições de intermediação e textos institucionais finais.
-- Dados e fotos dos veículos reais; a migração não importa veículos de demonstração.
+- Adicionar a chave de service role à configuração privada da Vercel para ativar convites.
+- Configurar SMTP no Supabase (o remetente Gmail temporário ainda não foi conectado).
+- Configurar SMTP em Supabase Auth (Gmail temporário) e `SUPABASE_SERVICE_ROLE_KEY` privado na Vercel; sem ambos, convites de vendedores não chegam.
+- Cadastrar os primeiros veículos e enviar fotos reais; o banco foi verificado vazio nesta revisão, portanto o catálogo público mostra o estado vazio.
+- No plano Free do Supabase, a proteção de senhas vazadas continua desativada; o advisor de segurança ainda sinaliza esse aviso.
+- Fazer uma revisão responsiva final em viewport mobile real/emulado antes da divulgação pública.
 
 Referências técnicas consultadas: https://supabase.com/docs/guides/database/postgres/row-level-security e documentação local do Next.js em `node_modules/next/dist/docs/`.

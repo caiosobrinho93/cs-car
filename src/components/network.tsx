@@ -10,15 +10,10 @@ import {
   Users,
   Plus,
   Search,
-  TrendingUp,
-  Wallet,
   LogOut,
   CheckCircle2,
   Pencil,
   ShieldCheck,
-  Clock,
-  Handshake,
-  RefreshCw,
 } from "lucide-react";
 import {
   Brand,
@@ -35,13 +30,13 @@ import { supabase, isDemo } from "@/lib/supabase";
 import {
   Vehicle,
   Garage,
-  Referral,
   garages,
-  initialReferrals,
   demoVehicles,
   money,
   whatsapp,
   VEHICLE_CATALOG,
+  VEHICLE_VERSIONS,
+  VEHICLE_FEATURE_GROUPS,
   VEHICLE_COLORS,
   BR_STATES,
   CITIES_BY_STATE,
@@ -57,7 +52,6 @@ const statusLabel: Record<string, string> = {
   reserved: "Reservado",
   draft: "Rascunho",
   approved: "Aprovado",
-  pending: "Aguardando aprovação",
   rejected: "Não aprovado",
 };
 export default function Network() {
@@ -65,18 +59,15 @@ export default function Network() {
       isDemo ? garages[0] : null,
     ),
     [admin, setAdmin] = useState(false),
+    [teamMember, setTeamMember] = useState(false),
+    [canEdit, setCanEdit] = useState(isDemo),
+    [locations, setLocations] = useState<Garage[]>(isDemo ? garages : []),
     [ready, setReady] = useState(isDemo),
     [tab, setTab] = useState("overview"),
-    [referrals, setReferrals] = useState<Referral[]>(
-      isDemo ? initialReferrals : [],
-    ),
-    [pending, setPending] = useState<Garage[]>([]),
     [filters, setFilters] = useState(emptyFilters),
     [detail, setDetail] = useState<Vehicle | null>(null),
     [editing, setEditing] = useState<Vehicle | "new" | null>(null),
-    [referring, setReferring] = useState<Vehicle | null>(null),
-    [toast, setToast] = useState(""),
-    [busy, setBusy] = useState(false);
+    [toast, setToast] = useState("");
   const { vehicles, loading, error, refresh } = useVehicles(true);
   const networkVehicles = vehicles.filter(
     (vehicle) => !isSampleVehicle(vehicle),
@@ -85,156 +76,47 @@ export default function Network() {
     setToast(message);
   }
   async function loadIdentity() {
-    if (!supabase) return;
+    if (!supabase) {
+      setReady(true);
+      return;
+    }
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("garages")
-        .select("*")
-        .eq("owner_id", user.id)
-        .maybeSingle();
-      setGarage(data);
-      const { data: isAdmin } = await supabase.rpc("is_admin");
-      setAdmin(!!isAdmin);
+      const [{ data: locations }, { data: member }, { data: isAdmin }] = await Promise.all([
+        supabase.from("garages").select("*").eq("active", true).order("name"),
+        supabase.from("team_members").select("user_id,role,active,display_name,can_edit_vehicles,commission_percent").eq("user_id", user.id).maybeSingle(),
+        supabase.rpc("is_admin"),
+      ]);
+      setGarage(locations?.[0] || null);
+      setLocations((locations || []) as Garage[]);
+      setTeamMember(!!member?.active);
+      setAdmin(!!isAdmin || member?.role === "admin");
+      setCanEdit(!!isAdmin || member?.role === "admin" || !!member?.can_edit_vehicles);
     } else {
       setGarage(null);
       setAdmin(false);
+      setTeamMember(false);
+      setCanEdit(false);
     }
     setReady(true);
   }
-  async function loadReferrals() {
-    if (isDemo) {
-      try {
-        setReferrals(
-          JSON.parse(localStorage.getItem("cs-referrals") || "null") ||
-            initialReferrals,
-        );
-      } catch {}
-      return;
-    }
-    const { data, error } = await supabase!
-      .from("referrals")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) notify("Não foi possível carregar as indicações.");
-    else setReferrals(data || []);
-  }
-  async function loadPending() {
-    if (!supabase) return;
-    const { data, error } = await supabase
-      .from("garages")
-      .select("*")
-      .eq("status", "pending");
-    if (error) notify("Não foi possível carregar as solicitações.");
-    else setPending(data || []);
-  }
   useEffect(() => {
     loadIdentity();
-    loadReferrals();
     const sub = supabase?.auth.onAuthStateChange(() => {
       setTimeout(() => {
         loadIdentity();
         refresh();
-        loadReferrals();
       }, 0);
     });
     return () => sub?.data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
-    if (admin) loadPending();
-  }, [admin]);
-  useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(""), 7000);
     return () => clearTimeout(t);
   }, [toast]);
-  const own = networkVehicles.filter((v) => v.garage_id === garage?.id);
-  const mine = referrals.filter(
-    (r) =>
-      r.broker_garage_id === garage?.id ||
-      r.owner_garage_id === garage?.id ||
-      admin,
-  );
-  const earnings = mine
-    .filter((r) => r.broker_garage_id === garage?.id && r.status === "paid")
-    .reduce((s, r) => s + r.partner_fee, 0);
-  const pipeline = mine
-    .filter(
-      (r) =>
-        r.broker_garage_id === garage?.id &&
-        !["paid", "cancelled"].includes(r.status),
-    )
-    .reduce((s, r) => s + r.partner_fee, 0);
-  async function updateReferral(r: Referral, status: string) {
-    setBusy(true);
-    try {
-      if (isDemo) {
-        if (
-          status === "sold" &&
-          readDemo().find((v) => v.id === r.vehicle_id)?.status === "sold"
-        )
-          throw new Error("Veículo já vendido.");
-        const next = referrals.map((x) =>
-          x.id === r.id
-            ? { ...x, status }
-            : status === "sold" &&
-                x.vehicle_id === r.vehicle_id &&
-                ["new", "visit"].includes(x.status)
-              ? { ...x, status: "cancelled" }
-              : x,
-        );
-        setReferrals(next);
-        localStorage.setItem("cs-referrals", JSON.stringify(next));
-        if (status === "sold") {
-          saveDemo(
-            readDemo().map((v) =>
-              v.id === r.vehicle_id ? { ...v, status: "sold" } : v,
-            ),
-          );
-        }
-      } else {
-        const { error } = await supabase!.rpc("transition_referral", {
-          referral_id: r.id,
-          next_status: status,
-        });
-        if (error) throw error;
-        await loadReferrals();
-        await refresh();
-      }
-      notify("Negociação atualizada.");
-    } catch (e) {
-      notify(e instanceof Error ? e.message : "Não foi possível atualizar.");
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function platformReceipt(id: string) {
-    setBusy(true);
-    const { error } = await supabase!.rpc("confirm_platform_receipt", {
-      referral_id: id,
-    });
-    setBusy(false);
-    if (error) notify(error.message);
-    else {
-      notify("Recebimento da CS Car confirmado.");
-      loadReferrals();
-    }
-  }
-  async function approve(id: string, status: string) {
-    setBusy(true);
-    const { error } = await supabase!.rpc("review_garage", {
-      target_id: id,
-      new_status: status,
-    });
-    setBusy(false);
-    if (error) notify(error.message);
-    else {
-      notify("Solicitação atualizada.");
-      loadPending();
-    }
-  }
   if (!ready)
     return (
       <div className="auth-page">
@@ -242,61 +124,17 @@ export default function Network() {
         <p>Verificando seu acesso…</p>
       </div>
     );
-  if (!isDemo && !garage && !admin) return <Auth onDone={loadIdentity} />;
-  if (!isDemo && garage?.status !== "approved" && !admin)
-    return (
-      <div className="auth-page">
-        <Brand />
-        <div className="auth-card">
-          <Clock size={40} />
-          <h1>
-            {garage?.status === "pending"
-              ? "Cadastro recebido."
-              : "Acesso ainda não liberado."}
-          </h1>
-          <p>
-            A CS Car precisa aprovar sua garagem antes de liberar os veículos e
-            as comissões da rede.
-          </p>
-          <a
-            className="btn orange"
-            href={whatsapp(
-              `Olá! Gostaria de verificar o cadastro da garagem ${garage?.name}.`,
-            )}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Falar com a CS Car
-          </a>
-          <button className="text-btn" onClick={() => loadIdentity()}>
-            Verificar aprovação <RefreshCw size={15} />
-          </button>
-          <button className="text-btn" onClick={() => supabase!.auth.signOut()}>
-            Sair
-          </button>
-        </div>
-      </div>
-    );
+  if (!isDemo && !teamMember) return <Auth onDone={loadIdentity} />;
   const nav: [string, string, typeof LayoutDashboard][] = [
     ["overview", "Visão geral", LayoutDashboard],
-    ["network", "Estoque da rede", NetworkIcon],
-    ["own", "Meus anúncios", CarFront],
-    ["referrals", "Minhas negociações", Handshake],
-    ...(admin
-      ? [
-          ["partners", "Aprovar parceiros", ShieldCheck] as [
-            string,
-            string,
-            typeof LayoutDashboard,
-          ],
-        ]
-      : []),
+    ["network", "Veículos", CarFront],
+    ...(admin ? [["partners", "Equipe e locais", Users] as [string,string,typeof LayoutDashboard]] : []),
   ];
   return (
     <div className="dashboard">
       <aside className="sidebar">
         <Brand />
-        <div className="workspace-label">ESPAÇO DO PARCEIRO</div>
+        <div className="workspace-label">CS CAR · EQUIPE INTERNA</div>
         <nav>
           {nav.map(([id, label, Icon]) => (
             <button
@@ -320,7 +158,7 @@ export default function Network() {
         <div className="sidebar-bottom">
           <div className="network-status">
             <span className="live-dot" />
-            Sua próxima venda está na rede.
+            Operação interna CS Car.
           </div>
           <Link href="/loja">
             Visitar a loja <ArrowUpRight size={16} />
@@ -335,14 +173,14 @@ export default function Network() {
       <div className="dashboard-main">
         <header className="dashboard-header">
           <div>
-            <span>CS CAR / REDE</span>
+            <span>CS CAR / PAINEL</span>
             <b>{nav.find((n) => n[0] === tab)?.[1]}</b>
           </div>
           <div className="profile">
             <span className="avatar">{garage?.name.slice(0, 1) || "CS"}</span>
             <div>
               <strong>{garage?.name || "CS Car Administração"}</strong>
-              <small>Parceiro {isDemo ? "de demonstração" : "aprovado"}</small>
+              <small>{admin ? "Administrador" : "Vendedor"}{isDemo ? " · demonstração" : ""}</small>
             </div>
           </div>
         </header>
@@ -373,11 +211,6 @@ export default function Network() {
               className="text-btn"
               onClick={() => {
                 saveDemo(demoVehicles);
-                localStorage.setItem(
-                  "cs-referrals",
-                  JSON.stringify(initialReferrals),
-                );
-                setReferrals(initialReferrals);
                 setGarage(garages[0]);
                 setTab("overview");
                 notify("Exemplos restaurados.");
@@ -390,37 +223,31 @@ export default function Network() {
         <main className="dashboard-content">
           <div className="dashboard-title">
             <div>
-              <p className="eyebrow">BOAS CONEXÕES. NOVOS NEGÓCIOS.</p>
+              <p className="eyebrow">CS CAR / OPERAÇÃO</p>
               <h1>
                 {tab === "overview" ? (
                   <>
-                    Seu próximo negócio
-                    <br />
-                    começa <em>na rede.</em>
+                    Estoque em movimento.
                   </>
                 ) : tab === "network" ? (
-                  "O carro do seu cliente está aqui."
-                ) : tab === "own" ? (
-                  "Sua vitrine na rede."
+                  "Veículos CS Car."
                 ) : tab === "partners" ? (
-                  "Novos parceiros."
+                  "Equipe e locais."
                 ) : (
-                  "Conexões em movimento."
+                  "Painel CS Car."
                 )}
               </h1>
               <p>
                 {tab === "overview"
-                  ? "Explore oportunidades, acompanhe indicações e mova sua garagem."
+                  ? "Acompanhe os anúncios e a disponibilidade dos veículos."
                   : tab === "network"
-                    ? "Preço final com as duas comissões incluídas. Encontre, indique e acompanhe."
-                    : tab === "own"
-                      ? "Gerencie os veículos e as condições que você oferece aos parceiros."
-                      : tab === "partners"
-                        ? "Revise as solicitações antes de liberar acesso à rede."
-                        : "Cada indicação tem seu preço e suas comissões registrados."}
+                    ? "Consulte e organize os veículos anunciados pela CS Car."
+                    : tab === "partners"
+                      ? "Gerencie contas internas, permissões, comissões e locais físicos."
+                    : "Acompanhe os anúncios e os locais da operação."}
               </p>
             </div>
-            {garage && (
+            {garage && canEdit && (
               <button className="btn orange" onClick={() => setEditing("new")}>
                 <Plus size={18} />
                 Anunciar veículo
@@ -432,7 +259,7 @@ export default function Network() {
               <div className="stats-grid">
                 {[
                   {
-                    label: "Veículos na rede",
+                    label: "Veículos disponíveis",
                     value: networkVehicles.filter(
                       (v) => v.status === "available",
                     ).length,
@@ -440,24 +267,22 @@ export default function Network() {
                     note: "Oportunidades disponíveis",
                   },
                   {
-                    label: "Negociações ativas",
-                    value: mine.filter(
-                      (r) => !["paid", "cancelled"].includes(r.status),
-                    ).length,
-                    icon: Handshake,
-                    note: "Enviadas e recebidas",
+                    label: "Veículos vendidos",
+                    value: networkVehicles.filter((v) => v.status === "sold").length,
+                    icon: CheckCircle2,
+                    note: "Anúncios marcados como vendidos",
                   },
                   {
-                    label: "Comissões em andamento",
-                    value: money(pipeline),
-                    icon: TrendingUp,
-                    note: "Indicações que você originou",
+                    label: "Locais ativos",
+                    value: locations.filter((place) => place.active !== false).length,
+                    icon: NetworkIcon,
+                    note: "Pontos de visita dos veículos",
                   },
                   {
-                    label: "Comissões recebidas",
-                    value: money(earnings),
-                    icon: Wallet,
-                    note: "Confirmadas por você",
+                    label: "Sua permissão",
+                    value: admin ? "Admin" : canEdit ? "Editar" : "Consulta",
+                    icon: ShieldCheck,
+                    note: "Acesso definido pelo administrador",
                   },
                 ].map((s) => (
                   <article className="stat-card" key={s.label}>
@@ -473,24 +298,23 @@ export default function Network() {
               <div className="network-callout">
                 <div>
                   <span className="eyebrow">
-                    MAIS ESTOQUE. MAIS POSSIBILIDADES.
+                    UMA OPERAÇÃO. TODOS OS LOCAIS.
                   </span>
                   <h2>
-                    Não tem o carro? <em>Tem a conexão.</em>
+                    Veículos organizados. <em>Equipe conectada.</em>
                   </h2>
                   <p>
-                    Encontre o veículo de outro parceiro e apresente ao seu
-                    cliente.
+                    Consulte o estoque e veja em qual local cada veículo está disponível.
                   </p>
                 </div>
                 <button className="btn light" onClick={() => setTab("network")}>
-                  Explorar a rede <ArrowUpRight size={18} />
+                  Ver veículos <ArrowUpRight size={18} />
                 </button>
               </div>
               <div className="dashboard-section-title">
-                <h2>Oportunidades para conectar</h2>
+                <h2>Anúncios recentes</h2>
                 <button className="text-btn" onClick={() => setTab("network")}>
-                  Ver toda a rede <ArrowRight size={17} />
+                  Ver todos <ArrowRight size={17} />
                 </button>
               </div>
               <div className="car-grid">
@@ -498,7 +322,6 @@ export default function Network() {
                   .filter(
                     (v) =>
                       !isSampleVehicle(v) &&
-                      v.garage_id !== garage?.id &&
                       v.status === "available",
                   )
                   .slice(0, 3)
@@ -508,7 +331,7 @@ export default function Network() {
                       v={v}
                       network
                       onOpen={() => setDetail(v)}
-                      onRefer={garage ? () => setReferring(v) : undefined}
+                    onRefer={undefined}
                     />
                   ))}
               </div>
@@ -542,7 +365,6 @@ export default function Network() {
                   }
                 >
                   <option value="featured">Destaques</option>
-                  <option value="commission">Maior comissão</option>
                   <option value="price-up">Menor preço</option>
                   <option value="newest">Mais novos</option>
                 </select>
@@ -558,13 +380,7 @@ export default function Network() {
                     v={v}
                     network
                     onOpen={() => setDetail(v)}
-                    onRefer={
-                      garage &&
-                      v.garage_id !== garage.id &&
-                      v.status === "available"
-                        ? () => setReferring(v)
-                        : undefined
-                    }
+                    onRefer={undefined}
                   />
                 ))}
               </div>
@@ -582,220 +398,8 @@ export default function Network() {
               )}
             </>
           )}
-          {tab === "own" && (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Veículo</th>
-                    <th>Preço final</th>
-                    <th>Comissão parceiro</th>
-                    <th>CS Car</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {own.map((v) => (
-                    <tr key={v.id}>
-                      <td>
-                        <div className="table-car">
-                          <img src={v.images[0] || "/cars/hatch.webp"} alt="" />
-                          <div>
-                            <strong>
-                              {v.brand} {v.model}
-                            </strong>
-                            <small>
-                              {v.year} · {v.version}
-                            </small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{money(v.price)}</td>
-                      <td>{money(v.partner_fee || 0)}</td>
-                      <td>{money(v.platform_fee || 0)}</td>
-                      <td>
-                        <span className={"status " + v.status}>
-                          {statusLabel[v.status]}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="icon-btn"
-                          onClick={() => setEditing(v)}
-                          aria-label={`Editar ${v.model}`}
-                        >
-                          <Pencil size={17} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {!own.length && (
-                <div className="empty">
-                  <CarFront />
-                  <h3>Sua garagem começa com o primeiro anúncio.</h3>
-                  <button
-                    className="btn orange"
-                    onClick={() => setEditing("new")}
-                  >
-                    Anunciar veículo
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          {tab === "referrals" && (
-            <>
-              <div className="referral-explainer">
-                <ShieldCheck size={21} />
-                <p>
-                  O proprietário confirma a venda. Quem indicou confirma o
-                  recebimento da sua comissão. Os pagamentos são combinados
-                  entre as partes; o painel registra o andamento.
-                </p>
-              </div>
-              <div className="referral-list">
-                {mine.map((r) => {
-                  const v = vehicles.find((v) => v.id === r.vehicle_id);
-                  const owner = r.owner_garage_id === garage?.id;
-                  return (
-                    <article className="referral-card" key={r.id}>
-                      <div className="referral-card-top">
-                        <span className="eyebrow">
-                          {owner ? "INDICAÇÃO RECEBIDA" : "VOCÊ INDICOU"} ·{" "}
-                          {new Date(r.created_at).toLocaleDateString("pt-BR")}
-                        </span>
-                        <span className={"status " + r.status}>
-                          {statusLabel[r.status]}
-                        </span>
-                      </div>
-                      <h3>
-                        {v
-                          ? `${v.brand} ${v.model}`
-                          : r.vehicle_label || "Veículo"}
-                      </h3>
-                      <p>
-                        Comprador: <strong>{r.buyer_name}</strong>
-                        {r.buyer_phone && ` · ${r.buyer_phone}`}
-                      </p>
-                      <div className="referral-values">
-                        <div>
-                          <span>Preço registrado</span>
-                          <b>{money(r.price)}</b>
-                        </div>
-                        <div>
-                          <span>Parceiro indicador</span>
-                          <b>{money(r.partner_fee)}</b>
-                        </div>
-                        <div>
-                          <span>CS Car</span>
-                          <b>{money(r.platform_fee)}</b>
-                        </div>
-                      </div>
-                      <div className="referral-actions">
-                        {admin &&
-                          ["sold", "paid"].includes(r.status) &&
-                          !r.platform_received_at && (
-                            <button
-                              disabled={busy}
-                              className="btn outline small"
-                              onClick={() => platformReceipt(r.id)}
-                            >
-                              Confirmar recebimento CS Car
-                            </button>
-                          )}
-                        {r.platform_received_at && (
-                          <span className="status paid">CS Car recebida</span>
-                        )}
-                        {r.status === "new" && (owner || admin) && (
-                          <button
-                            disabled={busy}
-                            className="btn outline small"
-                            onClick={() => updateReferral(r, "visit")}
-                          >
-                            Confirmar visita
-                          </button>
-                        )}
-                        {["new", "visit"].includes(r.status) &&
-                          (owner || admin) && (
-                            <button
-                              disabled={busy}
-                              className="btn dark small"
-                              onClick={() => updateReferral(r, "sold")}
-                            >
-                              Confirmar venda
-                            </button>
-                          )}
-                        {r.status === "sold" &&
-                          (r.broker_garage_id === garage?.id || admin) && (
-                            <button
-                              disabled={busy}
-                              className="btn orange small"
-                              onClick={() => updateReferral(r, "paid")}
-                            >
-                              Confirmar comissão recebida
-                            </button>
-                          )}
-                        {["new", "visit"].includes(r.status) && (
-                          <button
-                            disabled={busy}
-                            className="text-btn"
-                            onClick={() => updateReferral(r, "cancelled")}
-                          >
-                            Cancelar indicação
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-              {!mine.length && (
-                <div className="empty">
-                  <Handshake />
-                  <h3>A primeira conexão começa com você.</h3>
-                  <p>Encontre um carro na rede e registre seu comprador.</p>
-                  <button
-                    className="btn dark"
-                    onClick={() => setTab("network")}
-                  >
-                    Explorar veículos
-                  </button>
-                </div>
-              )}
-            </>
-          )}
           {tab === "partners" && (
-            <div className="referral-list">
-              {pending.map((g) => (
-                <article className="referral-card" key={g.id}>
-                  <h3>{g.name}</h3>
-                  <p>
-                    {g.city}, {g.state} · {g.phone}
-                  </p>
-                  {g.contact_email && <small>{g.contact_email}</small>}
-                  <div className="referral-actions">
-                    <button
-                      disabled={busy}
-                      className="btn dark small"
-                      onClick={() => approve(g.id, "approved")}
-                    >
-                      Aprovar parceiro
-                    </button>
-                    <button
-                      disabled={busy}
-                      className="text-btn"
-                      onClick={() => approve(g.id, "rejected")}
-                    >
-                      Não aprovar
-                    </button>
-                  </div>
-                </article>
-              ))}
-              {!pending.length && <p>Nenhuma solicitação pendente.</p>}
-            </div>
+            <TeamAdmin onUpdate={() => loadIdentity()} notify={notify} />
           )}
           {loading && <p role="status">Carregando dados…</p>}
           {error && (
@@ -808,7 +412,7 @@ export default function Network() {
             <ShieldCheck size={14} />
             {isDemo
               ? "Demonstração local · nenhuma venda ou pagamento real"
-              : "Rede privada · informações comerciais para parceiros aprovados"}
+              : "Acesso interno CS Car · permissões gerenciadas pelo administrador"}
           </p>
         </main>
       </div>
@@ -817,26 +421,13 @@ export default function Network() {
         <VehicleForm
           vehicle={editing}
           garage={garage}
+          locations={locations}
           onClose={() => setEditing(null)}
           onSave={() => {
             setEditing(null);
             refresh();
             notify("Anúncio salvo.");
-            setTab("own");
-          }}
-        />
-      )}
-      {referring && garage && (
-        <ReferralForm
-          vehicle={referring}
-          garage={garage}
-          existing={referrals}
-          onClose={() => setReferring(null)}
-          onSave={() => {
-            setReferring(null);
-            loadReferrals();
-            setTab("referrals");
-            notify("Indicação registrada com preço e comissões.");
+            setTab("network");
           }}
         />
       )}
@@ -848,44 +439,72 @@ export default function Network() {
     </div>
   );
 }
+type TeamRecord = { user_id: string; display_name: string; role: string; email: string; can_edit_vehicles: boolean; commission_percent: number; active: boolean };
+function TeamAdmin({ onUpdate, notify }: { onUpdate: () => void; notify: (message: string) => void }) {
+  const [members, setMembers] = useState<TeamRecord[]>([]);
+  const [locations, setLocations] = useState<Garage[]>([]);
+  const [state, setState] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function load() {
+    const [{ data: { session } }, { data: places }] = await Promise.all([supabase!.auth.getSession(), supabase!.from("garages").select("*").order("name")]);
+    setLocations((places || []) as Garage[]);
+    if (!session) return;
+    const response = await fetch("/api/admin/invite", { headers: { authorization: `Bearer ${session.access_token}` } });
+    const result = await response.json();
+    if (response.ok) setMembers(result.members);
+    else notify(result.error || "Não foi possível carregar a equipe.");
+  }
+  useEffect(() => { void load(); }, []);
+  async function invite(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true);
+    try {
+      const [{ data: { session } }] = await Promise.all([supabase!.auth.getSession()]);
+      const formElement = event.currentTarget;
+      const form = new FormData(formElement);
+      const response = await fetch("/api/admin/invite", { method: "POST", headers: { authorization: `Bearer ${session?.access_token}`, "content-type": "application/json" }, body: JSON.stringify({ name: form.get("name"), email: form.get("email"), commissionPercent: form.get("commission") }) });
+      const result = await response.json(); if (!response.ok) throw new Error(result.error);
+      formElement.reset(); notify("Convite enviado ao vendedor."); await load();
+    } catch (error) { notify(error instanceof Error ? error.message : "Falha ao convidar vendedor."); }
+    finally { setBusy(false); }
+  }
+  async function saveMember(member: TeamRecord) {
+    const { data: { session } } = await supabase!.auth.getSession();
+    const response = await fetch("/api/admin/invite", { method: "PATCH", headers: { authorization: `Bearer ${session?.access_token}`, "content-type": "application/json" }, body: JSON.stringify({ userId: member.user_id, canEdit: member.can_edit_vehicles, commissionPercent: member.commission_percent, active: member.active }) });
+    const result = await response.json(); notify(response.ok ? "Permissões e comissão salvas." : result.error);
+  }
+  async function addLocation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement);
+    const { error } = await supabase!.from("garages").insert({ name: form.get("name"), city: form.get("city"), state: form.get("state"), phone: String(form.get("phone") || ""), contact_email: String(form.get("email") || ""), address: String(form.get("address") || ""), notes: String(form.get("notes") || ""), status: "approved", active: true });
+    if (error) notify(error.message); else { formElement.reset(); setState(""); notify("Local adicionado."); await load(); onUpdate(); }
+  }
+  async function toggleLocation(place: Garage) {
+    const { error } = await supabase!.from("garages").update({ active: place.active === false }).eq("id", place.id);
+    if (error) notify(error.message); else { notify(place.active === false ? "Local ativado." : "Local desativado."); await load(); onUpdate(); }
+  }
+  return <div className="team-admin">
+    <section className="admin-panel"><div className="dashboard-section-title"><h2>Equipe CS Car</h2><span>Contas internas · comissão sobre o preço anunciado</span></div>
+      <form className="team-invite-form" onSubmit={invite}><input name="name" placeholder="Nome do vendedor" aria-label="Nome do vendedor" required maxLength={120}/><input name="email" placeholder="E-mail para convite" aria-label="E-mail do vendedor" type="email" required/><input name="commission" placeholder="Comissão %" aria-label="Comissão percentual" type="number" min="0" max="100" step="0.01" defaultValue="0" required/><button className="btn orange" disabled={busy}>{busy ? "Enviando…" : "Convidar"}</button></form>
+      <div className="team-member-list">{members.map((member) => <article className="team-member" key={member.user_id}><div><strong>{member.display_name || member.email}</strong><small>{member.email} · {member.role === "admin" ? "Administrador" : "Vendedor"}</small></div>{member.role === "seller" && <><label className="team-permission"><input type="checkbox" checked={member.can_edit_vehicles} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, can_edit_vehicles:e.target.checked} : m))}/> Pode editar anúncios</label><input aria-label={`Comissão de ${member.display_name}`} type="number" min="0" max="100" step="0.01" value={member.commission_percent} onChange={(e) => setMembers((items) => items.map((m) => m.user_id === member.user_id ? {...m, commission_percent:Number(e.target.value)} : m))}/><button className="btn outline small" onClick={() => saveMember(member)}>Salvar</button></>}</article>)}</div>
+    </section>
+    <section className="admin-panel"><div className="dashboard-section-title"><h2>Locais dos veículos</h2><span>Locais físicos, sem contas de acesso</span></div>
+      <form className="location-form" onSubmit={addLocation}><input name="name" placeholder="Nome do local/garagem" aria-label="Nome do local" required/><input name="address" placeholder="Endereço ou referência" aria-label="Endereço"/><div className="form-grid"><select name="state" aria-label="Estado" required value={state} onChange={(e)=>setState(e.target.value)}><option value="">Estado</option>{BR_STATES.map((uf)=><option key={uf}>{uf}</option>)}</select><select name="city" aria-label="Cidade" required disabled={!state}><option value="">Cidade</option>{(CITIES_BY_STATE[state]||[]).map((city)=><option key={city}>{city}</option>)}</select></div><input name="phone" placeholder="WhatsApp do local (opcional)" aria-label="WhatsApp do local"/><input name="email" placeholder="E-mail do local (opcional)" aria-label="E-mail do local" type="email"/><input name="notes" placeholder="Observações (opcional)" aria-label="Observações"/><button className="btn orange">Adicionar local</button></form>
+      <div className="team-member-list">{locations.map((place)=><article className="team-member" key={place.id}><div><strong>{place.name}</strong><small>{place.address ? `${place.address} · ` : ""}{place.city}, {place.state}{place.phone ? ` · ${place.phone}` : ""}</small></div><span className={place.active ? "status paid" : "status draft"}>{place.active ? "Ativo" : "Inativo"}</span><button type="button" className="btn outline small" onClick={() => void toggleLocation(place)}>{place.active ? "Desativar" : "Ativar"}</button></article>)}</div>
+    </section>
+  </div>;
+}
 function Auth({ onDone }: { onDone: () => void }) {
-  const [signup, setSignup] = useState(false),
-    [busy, setBusy] = useState(false),
-    [message, setMessage] = useState(""),
-    [state, setState] = useState("");
+  const [busy, setBusy] = useState(false),
+    [message, setMessage] = useState("");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setMessage("");
     const f = new FormData(e.currentTarget);
-    const email = String(f.get("email")),
-      password = String(f.get("password"));
+    const email = String(f.get("email")), password = String(f.get("password"));
     try {
-      if (signup) {
-        const { error } = await supabase!.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              garage_name: f.get("name"),
-              city: f.get("city"),
-              state: f.get("state"),
-              phone: f.get("phone"),
-            },
-          },
-        });
-        if (error) throw error;
-        setMessage(
-          "Cadastro enviado. Confirme seu e-mail e aguarde a aprovação da CS Car.",
-        );
-      } else {
-        const { error } = await supabase!.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        onDone();
-      }
+      const { error } = await supabase!.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      onDone();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Não foi possível concluir.");
     } finally {
@@ -897,80 +516,24 @@ function Auth({ onDone }: { onDone: () => void }) {
       <Brand />
       <div className="auth-layout">
         <div>
-          <p className="eyebrow">CS CAR / REDE DE PARCEIROS</p>
+          <p className="eyebrow">CS CAR / EQUIPE INTERNA</p>
           <h1>
             Boas conexões
             <br />
             fazem <em>bons negócios.</em>
           </h1>
           <p>
-            Encontre carros para seus clientes. Anuncie sua garagem.
+            Gerencie veículos, locais e acessos da equipe CS Car.
             <br />
-            Transforme indicações em novas oportunidades.
+            Controle anúncios e permissões em um só lugar.
           </p>
           <Link href="/loja" className="text-link">
             Conhecer a loja <ArrowUpRight size={18} />
           </Link>
         </div>
         <form className="auth-card" onSubmit={submit}>
-          <h2>{signup ? "Faça parte da rede." : "Bem-vindo de volta."}</h2>
-          <p>
-            {signup
-              ? "Crie seu usuário e cadastre a garagem que ele representa. A CS Car aprova cada acesso."
-              : "Acesse o espaço da sua garagem."}
-          </p>
-          {signup && (
-            <>
-              <label>
-                Nome da garagem
-                <input name="name" required maxLength={120} />
-              </label>
-              <div className="form-grid">
-                <label>
-                  Cidade
-                  <select
-                    name="city"
-                    required
-                    defaultValue=""
-                    disabled={!state}
-                  >
-                    <option value="" disabled>
-                      Selecione a cidade
-                    </option>
-                    {(CITIES_BY_STATE[state] || []).map((city) => (
-                      <option key={city}>{city}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  UF
-                  <select
-                    name="state"
-                    required
-                    defaultValue=""
-                    onChange={(e) => setState(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      UF
-                    </option>
-                    {BR_STATES.map((state) => (
-                      <option key={state}>{state}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label>
-                WhatsApp
-                <input
-                  name="phone"
-                  required
-                  type="tel"
-                  minLength={10}
-                  maxLength={20}
-                />
-              </label>
-            </>
-          )}
+          <h2>Bem-vindo de volta.</h2>
+          <p>Acesse o painel da equipe CS Car.</p>
           <label>
             E-mail
             <input name="email" type="email" required autoComplete="email" />
@@ -982,28 +545,12 @@ function Auth({ onDone }: { onDone: () => void }) {
               type="password"
               required
               minLength={8}
-              autoComplete={signup ? "new-password" : "current-password"}
+              autoComplete="current-password"
             />
           </label>
           <button className="btn orange" disabled={busy}>
-            {busy
-              ? "Aguarde…"
-              : signup
-                ? "Solicitar cadastro"
-                : "Entrar na rede"}
+            {busy ? "Aguarde…" : "Entrar no painel"}
             <ArrowRight size={18} />
-          </button>
-          <button
-            type="button"
-            className="text-btn"
-            onClick={() => {
-              setSignup(!signup);
-              setMessage("");
-            }}
-          >
-            {signup
-              ? "Já tenho cadastro. Entrar"
-              : "Criar usuário e cadastrar garagem"}
           </button>
           {message && (
             <p role="status" className="form-message">
@@ -1015,158 +562,67 @@ function Auth({ onDone }: { onDone: () => void }) {
     </div>
   );
 }
-function ReferralForm({
-  vehicle: v,
-  garage,
-  existing,
-  onClose,
-  onSave,
-}: {
-  vehicle: Vehicle;
-  garage: Garage;
-  existing: Referral[];
-  onClose: () => void;
-  onSave: () => void;
-}) {
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    const f = new FormData(e.currentTarget);
-    try {
-      if (isDemo) {
-        const r: Referral = {
-          id: crypto.randomUUID(),
-          vehicle_id: v.id,
-          owner_garage_id: v.garage_id,
-          broker_garage_id: garage.id,
-          buyer_name: String(f.get("name")),
-          buyer_phone: String(f.get("phone")),
-          price: v.price,
-          partner_fee: v.partner_fee || 0,
-          platform_fee: v.platform_fee || 0,
-          status: "new",
-          created_at: new Date().toISOString(),
-          vehicle_label: `${v.brand} ${v.model}`,
-        };
-        if (
-          existing.some(
-            (x) =>
-              x.vehicle_id === v.id &&
-              x.broker_garage_id === garage.id &&
-              x.buyer_phone === r.buyer_phone &&
-              !["cancelled", "paid"].includes(x.status),
-          )
-        )
-          throw new Error(
-            "Esse comprador já tem uma indicação ativa para este carro.",
-          );
-        localStorage.setItem("cs-referrals", JSON.stringify([r, ...existing]));
-      } else {
-        const { error } = await supabase!.rpc("create_referral", {
-          target_vehicle: v.id,
-          customer_name: String(f.get("name")),
-          customer_phone: String(f.get("phone")),
-        });
-        if (error) throw error;
-      }
-      onSave();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível registrar.");
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <Modal title="Uma nova conexão." onClose={onClose}>
-      <form onSubmit={submit} className="stack-form">
-        <p>
-          {v.brand} {v.model} · {v.year}
-        </p>
-        <div className="price-summary">
-          <p>
-            Preço final <strong>{money(v.price)}</strong>
-          </p>
-          <p>
-            Sua comissão <strong>{money(v.partner_fee || 0)}</strong>
-          </p>
-          <p>
-            Parte da CS Car <strong>{money(v.platform_fee || 0)}</strong>
-          </p>
-          <small>As duas comissões já estão incluídas no preço final.</small>
-        </div>
-        <label>
-          Nome do comprador
-          <input
-            name="name"
-            required
-            maxLength={120}
-            placeholder="Nome de quem você está indicando"
-          />
-        </label>
-        <label>
-          WhatsApp do comprador
-          <input
-            name="phone"
-            type="tel"
-            required
-            pattern="[0-9 ()+\-]{10,20}"
-            maxLength={20}
-            placeholder="(17) 99999-9999"
-          />
-        </label>
-        <label className="checkbox-label">
-          <input required type="checkbox" />
-          Tenho autorização do comprador para compartilhar seu contato com a
-          garagem responsável.
-        </label>
-        <p className="hint">
-          O registro preserva o preço e as comissões atuais. Não reserva
-          automaticamente o veículo.
-        </p>
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-        <button disabled={busy} className="btn orange">
-          {busy ? "Registrando…" : "Registrar indicação"}
-          <ArrowUpRight size={18} />
-        </button>
-      </form>
-    </Modal>
-  );
-}
 function VehicleForm({
   vehicle,
   garage,
+  locations,
   onClose,
   onSave,
 }: {
   vehicle: Vehicle | "new";
   garage: Garage;
+  locations: Garage[];
   onClose: () => void;
   onSave: () => void;
 }) {
   const v = vehicle === "new" ? null : vehicle;
+  const [locationId, setLocationId] = useState(v?.garage_id || garage.id);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [step, setStep] = useState(1),
     [brand, setBrand] = useState(v?.brand || ""),
     [model, setModel] = useState(v?.model || ""),
-    [price, setPrice] = useState(v?.price || 0),
-    [fee, setFee] = useState(v?.partner_fee || 0),
-    [platform, setPlatform] = useState(v?.platform_fee || 0);
+    [price, setPrice] = useState(v?.price || 0);
+  const [features, setFeatures] = useState<string[]>(v?.features || []);
+  const [featureSearch, setFeatureSearch] = useState("");
+  const versionOptions = [
+    ...new Set([...VEHICLE_VERSIONS, ...(v?.version ? [v.version] : [])]),
+  ];
+  function validateStep(targetStep: number) {
+    const form = document.querySelector<HTMLFormElement>(
+      ".stack-form[data-vehicle-form]",
+    );
+    const section = form?.querySelector<HTMLElement>(
+      `.vehicle-step[data-step="${targetStep}"]`,
+    );
+    const invalid = [
+      ...(section?.querySelectorAll<HTMLElement>("input,select,textarea") ||
+        []),
+    ].find((field) =>
+      field instanceof HTMLInputElement ||
+      field instanceof HTMLSelectElement ||
+      field instanceof HTMLTextAreaElement
+        ? !field.checkValidity()
+        : false,
+    ) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | undefined;
+    if (invalid) {
+      setStep(targetStep);
+      setError(invalid.validationMessage || "Confira os campos desta etapa.");
+      requestAnimationFrame(() => invalid.focus());
+      return false;
+    }
+    setError("");
+    return true;
+  }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) return;
     setBusy(true);
     setError("");
     const form = new FormData(e.currentTarget);
     try {
-      if (price < fee + platform)
-        throw new Error("As comissões não podem superar o preço final.");
+      const selectedLocation = locations.find((place) => place.id === locationId && place.active !== false);
+      if (!selectedLocation) throw new Error("Selecione um local ativo para o veículo.");
       const id = v?.id || crypto.randomUUID();
       let images = v?.images || [];
       const files = form
@@ -1198,7 +654,7 @@ function VehicleForm({
           images = [];
           for (const file of files) {
             const ext = file.type.split("/")[1];
-            const path = `${garage.id}/${id}/${crypto.randomUUID()}.${ext}`;
+            const path = `${locationId}/${id}/${crypto.randomUUID()}.${ext}`;
             const { error } = await supabase!.storage
               .from("vehicle-images")
               .upload(path, file);
@@ -1216,8 +672,8 @@ function VehicleForm({
       }
       const row: Vehicle = {
         id,
-        garage_id: garage.id,
-        garage_name: garage.name,
+        garage_id: selectedLocation.id,
+        garage_name: selectedLocation.name,
         brand,
         model,
         version: String(form.get("version")).trim(),
@@ -1228,18 +684,15 @@ function VehicleForm({
         fuel: String(form.get("fuel")),
         body: String(form.get("body")),
         color: String(form.get("color")),
-        city: garage.city,
-        state: garage.state,
+        city: selectedLocation.city,
+        state: selectedLocation.state,
         status: String(form.get("status")) as Vehicle["status"],
         images,
         description: String(form.get("description")),
-        features: String(form.get("features"))
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        features,
         featured: !!v?.featured,
-        partner_fee: fee,
-        platform_fee: platform,
+        partner_fee: v?.partner_fee || 0,
+        platform_fee: 0,
       };
       if (isDemo) {
         const all = readDemo();
@@ -1248,8 +701,6 @@ function VehicleForm({
         const { garage_name, partner_fee, platform_fee, ...payload } = row;
         const { error } = await supabase!.rpc("save_vehicle", {
           vehicle_data: payload,
-          broker_commission: fee,
-          cs_commission: platform,
         });
         if (error) throw error;
       }
@@ -1271,25 +722,33 @@ function VehicleForm({
     type = "text",
     required = true,
   ) => (
-    <label key={name}>
-      {label}
-      <input
-        name={name}
-        defaultValue={defaultValue}
-        type={type}
-        required={required}
-        min={type === "number" ? 0 : undefined}
-        maxLength={type === "text" ? 160 : undefined}
-      />
-    </label>
+    <input
+      name={name}
+      defaultValue={defaultValue}
+      type={type}
+      placeholder={label}
+      aria-label={label}
+      required={required}
+      min={type === "number" ? 0 : undefined}
+      maxLength={type === "text" ? 160 : undefined}
+    />
   );
   return (
     <Modal
-      title={v ? "Editar anúncio" : "Seu próximo anúncio."}
+      title={v ? "Editar veículo" : "Novo anúncio"}
       onClose={onClose}
       wide
     >
-      <form onSubmit={submit} className="stack-form" data-step={step}>
+      <p className="vehicle-form-intro">
+        {v ? "Atualize as informações do veículo." : "Dados organizados em poucos passos."}
+      </p>
+      <form
+        onSubmit={submit}
+        className="stack-form"
+        data-step={step}
+        data-vehicle-form
+        noValidate
+      >
         <div
           className="vehicle-tabs"
           role="tablist"
@@ -1297,8 +756,8 @@ function VehicleForm({
         >
           {[
             ["1", "Veículo"],
-            ["2", "Comercial"],
-            ["3", "Detalhes"],
+            ["2", "Preço"],
+            ["3", "Fotos e descrição"],
           ].map(([value, label]) => (
             <button
               key={value}
@@ -1308,83 +767,104 @@ function VehicleForm({
               className={step === Number(value) ? "active" : ""}
               onClick={() => setStep(Number(value))}
             >
-              <span>0{value}</span>
               {label}
             </button>
           ))}
         </div>
         <div className="vehicle-step" data-step="1">
-          <details className="form-toggle" open>
-            <summary>Sobre o fabricante</summary>
-            <div className="form-toggle-content">
-              <div className="form-grid three">
-                <label>
-                  Marca
-                  <select
-                    name="brand"
-                    value={brand}
-                    required
-                    onChange={(e) => {
-                      setBrand(e.target.value);
-                      setModel("");
-                    }}
-                  >
-                    <option value="" disabled>
-                      Selecione a marca
-                    </option>
-                    {Object.keys(VEHICLE_CATALOG).map((item) => (
-                      <option key={item}>{item}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Modelo
-                  <select
-                    name="model"
-                    value={model}
-                    required
-                    disabled={!brand}
-                    onChange={(e) => setModel(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      Selecione o modelo
-                    </option>
-                    {(VEHICLE_CATALOG[brand] || []).map((item) => (
-                      <option key={item}>{item}</option>
-                    ))}
-                  </select>
-                </label>
-                {input("version", "Versão", v?.version)}
-              </div>
-            </div>
-          </details>
-          <details className="form-toggle" open>
-            <summary>Sobre o veículo</summary>
-            <div className="form-toggle-content">
-              <div className="form-grid three">
-                <label>
-                  Ano
-                  <input
-                    name="year"
-                    type="number"
-                    min="1900"
-                    max="2200"
-                    required
-                    defaultValue={v?.year || 2022}
-                  />
-                </label>
-                {input("mileage", "Quilometragem", v?.mileage || 0, "number")}
-                <label>
-                  Cor
-                  <select name="color" defaultValue={v?.color || ""} required>
-                    <option value="" disabled>
-                      Selecione a cor
-                    </option>
-                    {VEHICLE_COLORS.map((item) => (
-                      <option key={item}>{item}</option>
-                    ))}
-                  </select>
-                </label>
+          <p className="vehicle-step-caption">Identificação e características</p>
+          <div className="form-grid vehicle-grid">
+                <select name="garage_id" value={locationId} aria-label="Local do veículo" required onChange={(event) => setLocationId(event.target.value)}>
+                  <option value="" disabled>Local do veículo</option>
+                  {locations.filter((place) => place.active !== false).map((place) => <option key={place.id} value={place.id}>{place.name} · {place.city}, {place.state}</option>)}
+                </select>
+                <select
+                  name="brand"
+                  value={brand}
+                  required
+                  aria-label="Marca"
+                  onChange={(e) => {
+                    setBrand(e.target.value);
+                    setModel("");
+                  }}
+                >
+                  <option value="" disabled>
+                    Marca do veículo
+                  </option>
+                  {Object.keys(VEHICLE_CATALOG).map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                  {brand && !VEHICLE_CATALOG[brand] && <option>{brand}</option>}
+                </select>
+                <select
+                  name="model"
+                  value={model}
+                  required
+                  disabled={!brand}
+                  aria-label="Modelo"
+                  onChange={(e) => setModel(e.target.value)}
+                >
+                  <option value="" disabled>
+                    Modelo do veículo
+                  </option>
+                  {[
+                    ...new Set([
+                      ...(VEHICLE_CATALOG[brand] || []),
+                      ...(v?.brand === brand && v?.model ? [v.model] : []),
+                    ]),
+                  ].map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  name="version"
+                  defaultValue={v?.version || ""}
+                  required
+                  aria-label="Versão"
+                >
+                  <option value="" disabled>
+                    Versão do veículo
+                  </option>
+                  {versionOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  name="year"
+                  defaultValue={v?.year || ""}
+                  required
+                  aria-label="Ano"
+                >
+                  <option value="" disabled>
+                    Ano do veículo
+                  </option>
+                  {Array.from(
+                    { length: new Date().getFullYear() - 1980 + 2 },
+                    (_, i) => new Date().getFullYear() + 1 - i,
+                  ).map((year) => (
+                    <option key={year}>{year}</option>
+                  ))}
+                  {v?.year && v.year < 1980 && <option>{v.year}</option>}
+                </select>
+                {input(
+                  "mileage",
+                  "Quilometragem em km",
+                  v?.mileage ?? "",
+                  "number",
+                )}
+                <select
+                  name="color"
+                  defaultValue={v?.color || ""}
+                  required
+                  aria-label="Cor"
+                >
+                  <option value="" disabled>
+                    Cor do veículo
+                  </option>
+                  {VEHICLE_COLORS.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
                 {[
                   ["transmission", "Câmbio", ["Manual", "Automático"]],
                   [
@@ -1411,121 +891,149 @@ function VehicleForm({
                     ["available", "reserved", "draft", "sold"],
                   ],
                 ].map(([name, label, opts]) => (
-                  <label key={name as string}>
-                    {label as string}
-                    <select
-                      name={name as string}
-                      defaultValue={
-                        (v?.[name as keyof Vehicle] as string) ||
-                        (opts as string[])[0]
-                      }
-                    >
-                      {(opts as string[]).map((o) => (
-                        <option key={o} value={o}>
-                          {statusLabel[o] || o}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <select
+                    name={name as string}
+                    aria-label={label as string}
+                    required
+                    defaultValue={
+                      (v?.[name as keyof Vehicle] as string) ||
+                      (opts as string[])[0]
+                    }
+                  >
+                    <option value="" disabled>
+                      {label as string}
+                    </option>
+                    {(opts as string[]).map((o) => (
+                      <option key={o} value={o}>
+                        {statusLabel[o] || o}
+                      </option>
+                    ))}
+                  </select>
                 ))}
-              </div>
-            </div>
-          </details>
+          </div>
         </div>
         <div className="vehicle-step" data-step="2">
-          <details className="form-toggle" open>
-            <summary>Condições comerciais</summary>
-            <div className="form-toggle-content">
-              <div className="form-grid three">
-                <label>
-                  Preço final (R$)
-                  <input
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    required
-                    value={price || ""}
-                    onChange={(e) => setPrice(Number(e.target.value))}
-                  />
-                </label>
-                <label>
-                  Comissão parceiro (R$)
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    value={fee}
-                    onChange={(e) => setFee(Number(e.target.value))}
-                  />
-                </label>
-                <label>
-                  Parte CS Car (R$)
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    value={platform}
-                    onChange={(e) => setPlatform(Number(e.target.value))}
-                  />
-                </label>
-              </div>
-            </div>
-          </details>
-          <div className="price-summary">
-            <p>
-              Valor para o responsável pelo veículo{" "}
-              <strong>{money(price - fee - platform)}</strong>
-            </p>
-            <small>
-              Preço final menos a comissão do parceiro e a parte da CS Car.
-            </small>
+          <p className="vehicle-step-caption">Preço anunciado</p>
+          <div className="vehicle-price-fields">
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  required
+                  value={price || ""}
+                  placeholder="Preço final (R$)"
+                  aria-label="Preço final em reais"
+                  onChange={(e) => setPrice(Number(e.target.value))}
+                />
           </div>
         </div>
         <div className="vehicle-step" data-step="3">
-          <details className="form-toggle" open>
-            <summary>Descrição e opcionais</summary>
-            <div className="form-toggle-content">
-              <label>
-                Descrição
-                <textarea
-                  name="description"
-                  defaultValue={v?.description}
-                  rows={3}
-                  maxLength={5000}
-                  required
-                />
-              </label>
-              <label>
-                Itens e opcionais (separados por vírgula)
+          <p className="vehicle-step-caption">Conte o que torna este carro especial</p>
+          <div className="vehicle-details-fields">
+              <textarea
+                name="description"
+                defaultValue={v?.description}
+                rows={3}
+                maxLength={5000}
+                placeholder="Sobre o carro: conte o estado, histórico e diferenciais..."
+                aria-label="Sobre o carro"
+                required
+              />
+              <fieldset className="feature-picker">
+                <legend>Opcionais e diferenciais</legend>
                 <input
-                  name="features"
-                  defaultValue={v?.features.join(", ")}
-                  maxLength={1000}
+                  className="feature-search"
+                  type="search"
+                  value={featureSearch}
+                  placeholder="Buscar opcional..."
+                  aria-label="Buscar opcional ou diferencial"
+                  onChange={(event) => setFeatureSearch(event.target.value)}
                 />
-              </label>
-            </div>
-          </details>
-          <details className="form-toggle" open>
-            <summary>Fotos do veículo</summary>
-            <div className="form-toggle-content">
-              <label>
-                Fotos do veículo
+                <input
+                  type="hidden"
+                  name="features"
+                  value={features.join(",")}
+                />
+                <div
+                  className="feature-options feature-options-scroll"
+                  role="group"
+                  aria-label="Selecione os opcionais e diferenciais. Role horizontalmente para ver todos"
+                >
+                  {Object.entries(VEHICLE_FEATURE_GROUPS).flatMap(
+                    ([group, choices]) => [
+                      ...(choices.some((item) => item.toLowerCase().includes(featureSearch.trim().toLowerCase())) ? [<span className="feature-group-label" key={`group-${group}`}>{group}</span>] : []),
+                      ...choices.map((item) => {
+                        if (!item.toLowerCase().includes(featureSearch.trim().toLowerCase())) return null;
+                        const selected = features.includes(item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            className={`feature-chip${selected ? " selected" : ""}`}
+                            aria-label={`${group}: ${item}`}
+                            aria-pressed={selected}
+                            onClick={() =>
+                              setFeatures((current) =>
+                                selected
+                                  ? current.filter((value) => value !== item)
+                                  : [...current, item],
+                              )
+                            }
+                          >
+                            {item}
+                          </button>
+                        );
+                      }),
+                    ],
+                  )}
+                  {features
+                    .filter(
+                      (item) =>
+                        !Object.values(VEHICLE_FEATURE_GROUPS)
+                          .flat()
+                          .includes(item),
+                    )
+                    .map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className="feature-chip selected"
+                        aria-label={`Remover opcional ${item}`}
+                        aria-pressed="true"
+                        onClick={() =>
+                          setFeatures((current) =>
+                            current.filter((value) => value !== item),
+                          )
+                        }
+                      >
+                        {item}
+                      </button>
+                    ))}
+                </div>
+                {features.length > 0 && (
+                  <div className="selected-features" aria-label="Opcionais selecionados">
+                    {features.map((item) => (
+                      <button key={item} type="button" onClick={() => setFeatures((current) => current.filter((value) => value !== item))} aria-label={`Remover ${item}`}>
+                        {item}<span aria-hidden="true">×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            <div className="vehicle-photo-row">
+              <label className="photo-picker">
+                <span>Adicionar fotos</span>
+                <small>JPG, PNG ou WebP · até 8</small>
                 <input
                   name="photos"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   multiple
+                  aria-label="Selecionar fotos do veículo"
                 />
-                <small>
-                  Até 8 fotos de 5 MB. Ao selecionar novas fotos, a galeria
-                  anterior será substituída.
-                  {isDemo ? " Na demonstração, prefira arquivos pequenos." : ""}
-                </small>
               </label>
             </div>
-          </details>
+          </div>
         </div>
         {error && (
           <p className="error" role="alert">
@@ -1546,7 +1054,7 @@ function VehicleForm({
             <button
               type="button"
               className="btn orange"
-              onClick={() => setStep(step + 1)}
+              onClick={() => validateStep(step) && setStep(step + 1)}
             >
               Continuar <ArrowRight size={18} />
             </button>

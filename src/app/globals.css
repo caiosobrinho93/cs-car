@@ -25,6 +25,9 @@ body {
 main {
   padding-top: 90px;
 }
+.home-page {
+  padding-top: 0;
+}
 button,
 input,
 select,
@@ -243,9 +246,9 @@ select {
   padding: 90px 6%;
 }
 .hero {
-  margin-top: -90px;
-  /* Keep the original animation distance, then hold for six virtual frames. */
-  height: calc(360svh + 260svh * 0.0606060606);
+  margin-top: 0;
+  /* Slow the 196-frame sequence while ending precisely on its final frame. */
+  height: 720svh;
   --intro: 1;
   --outro: 0;
   --progress: 0;
@@ -2099,7 +2102,7 @@ td {
     padding: 15px;
   }
   .hero {
-    height: calc(300svh + 200svh * 0.0606060606);
+    height: 600svh;
   }
   .hero-stage {
     height: 100svh;

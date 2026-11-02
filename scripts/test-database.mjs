@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 const db = new PGlite();
 await db.exec(`create role anon;create role authenticated;create schema auth;create schema storage;
-create table auth.users(id uuid primary key,raw_user_meta_data jsonb);
+create table auth.users(id uuid primary key,raw_user_meta_data jsonb,email text);
 create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
 grant usage on schema public,auth,storage to anon,authenticated;
 grant execute on function auth.uid() to anon,authenticated;
@@ -20,7 +20,7 @@ const ids = [
   "44444444-4444-4444-8444-444444444444",
 ];
 for (let i = 0; i < 4; i++)
-  await db.query("insert into auth.users values($1,$2)", [
+  await db.query("insert into auth.users(id,raw_user_meta_data,email) values($1,$2,$3)", [
     ids[i],
     {
       garage_name: ["Joao", "Marcelo", "Pending", "CS"][i],
@@ -28,6 +28,7 @@ for (let i = 0; i < 4; i++)
       state: "SP",
       phone: "17999999999",
     },
+    `user${i}@example.test`,
   ]);
 await db.query("insert into public.admin_users values($1)", [ids[3]]);
 await db.query(

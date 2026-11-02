@@ -2,9 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-// Six virtual copies of frame 100 extend the scroll without extra image files.
-const FINAL_HOLD_FRAMES = 6;
-const FRAME_TRANSITIONS = 99;
+const FRAME_COUNT = 196;
+const FRAME_TRANSITIONS = FRAME_COUNT - 1;
 const INTRO_FRAMES = 8;
 const INTRO_MIN_DURATION = 1450;
 export default function Hero() {
@@ -156,7 +155,7 @@ export default function Hero() {
     function seek(p: number) {
       if (copy) copy.inert = p > 0.25;
       if (outro) outro.inert = p < 0.65;
-      target = Math.round(p * 99);
+      target = Math.min(FRAME_TRANSITIONS, Math.round(p * FRAME_TRANSITIONS));
       el.dataset.requestedFrame = String(target + 1);
       el.style.setProperty("--progress", String(p));
       el.style.setProperty("--intro", String(Math.max(0, 1 - p * 4)));
@@ -164,7 +163,7 @@ export default function Hero() {
       queue = [];
       for (let d = 0; d < 10; d++)
         for (const n of d ? [target + d, target - d] : [target])
-          if (n >= 0 && n < 100) queue.push(n);
+          if (n >= 0 && n < FRAME_COUNT) queue.push(n);
       paint();
       pump();
     }
@@ -196,19 +195,14 @@ export default function Hero() {
           const tween = gsap.to(state, {
             p: 1,
             ease: "none",
-            onUpdate: () =>
-              scheduleSeek(
-                Math.min(
-                  1,
-                  (state.p * (FRAME_TRANSITIONS + FINAL_HOLD_FRAMES)) /
-                    FRAME_TRANSITIONS,
-                ),
-              ),
+            onUpdate: () => scheduleSeek(state.p),
             scrollTrigger: {
               trigger: el,
               start: "top top",
               end: "bottom bottom",
-              scrub: 0.3,
+              // A short scrub eases frame updates behind the user's scroll
+              // without making the hero feel detached from the gesture.
+              scrub: 0.75,
             },
           });
           cleanup = () => {

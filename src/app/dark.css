@@ -1,14 +1,44 @@
 /* CS Car — midnight palette and dimensional vehicle cards. */
 :root {
   color-scheme: dark;
+  --background: #111214;
+  --foreground: #f4f4f5;
+  --card: #202124;
+  --card-foreground: #f4f4f5;
+  --popover: #232427;
+  --popover-foreground: #f4f4f5;
+  --primary: #f26b45;
+  --primary-foreground: #fff;
+  --secondary: #303135;
+  --secondary-foreground: #ececee;
+  --muted: #2a2b2e;
+  --muted-foreground: #a5a6ab;
+  --accent: #38393d;
+  --accent-foreground: #fff;
+  --destructive: #dc4d43;
+  --border: #414247;
+  --input: #414247;
+  --ring: #f26b45;
+  --radius: 14px;
+  /* Semantic aliases used by the supplied shadcn-style carousel component. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --font-sans: "DM Sans", Arial, sans-serif;
   --ink: #f3f3f5;
-  --paper: #0c0e12;
+  --paper: var(--background);
   --muted: #a0a5b1;
   --line: #2a2e38;
   --orange: #ff7348;
   --surface: #14171e;
   --surface-raised: #1b1f29;
 }
+
 body {
   background: #0c0e12;
   color: var(--ink);
@@ -185,13 +215,28 @@ body {
   }
 }
 @keyframes site-intro-ambient {
-  from { transform: scale(0.96); opacity: 0.45; }
-  to { transform: scale(1.06); opacity: 0.82; }
+  from {
+    transform: scale(0.96);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(1.06);
+    opacity: 0.82;
+  }
 }
 @keyframes site-intro-speed-lines {
-  0%, 18% { opacity: 0; transform: translateX(-34%) skewX(-16deg); }
-  48% { opacity: 0.68; }
-  100% { opacity: 0; transform: translateX(34%) skewX(-16deg); }
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateX(-34%) skewX(-16deg);
+  }
+  48% {
+    opacity: 0.68;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(34%) skewX(-16deg);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .site-intro::before,
@@ -208,6 +253,7 @@ body {
     animation-delay: 0ms;
   }
 }
+
 @media (max-width: 680px) {
   .site-intro {
     --intro-launch-duration: 360ms;
@@ -1819,7 +1865,9 @@ td {
     margin-bottom: 18px;
   }
   .hero h1 {
-    font-size: clamp(48px, 12vw, 72px);
+    font-size: clamp(28px, 9vw, 48px);
+    white-space: normal;
+    word-break: normal;
   }
   .hero-outro h2 {
     font-size: 48px;
@@ -1840,7 +1888,7 @@ td {
 }
 @media (max-width: 680px) {
   .header {
-    position: sticky;
+    position: fixed;
     top: 0;
     z-index: 40;
     height: 76px;
@@ -2144,5 +2192,689 @@ td {
   }
   .referral-values span {
     font-size: 12px;
+  }
+}
+
+/* Dashboard and vehicle editor: graphite surfaces with CS orange accents. */
+dialog.modal:has(.stack-form) {
+  background: linear-gradient(
+    135deg,
+    #3b3c40 0%,
+    #242528 35%,
+    #18191b 62%,
+    #35363a 100%
+  );
+  background-size: 100% 100%;
+  animation: none;
+  border-color: #77797f;
+}
+dialog.modal:has(.stack-form)::before {
+  background: #d9dadd0d;
+  filter: blur(42px);
+}
+.vehicle-tabs {
+  background: linear-gradient(120deg, #18191b, #252629);
+  border-color: #48494d;
+}
+.vehicle-tabs button.active {
+  background: linear-gradient(135deg, #424347, #292a2e);
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px #6b6c70,
+    0 5px 18px #0005;
+}
+.form-toggle,
+.vehicle-step > .form-grid {
+  background: linear-gradient(135deg, #303135, #222326 58%, #2c2d30);
+  border-color: #55565b;
+}
+.form-toggle:hover,
+.form-toggle:focus-within {
+  background: linear-gradient(115deg, #303033, #222326 65%, #332521);
+  border-color: #ff855b77;
+}
+.stack-form input:not([type="checkbox"], [type="file"]),
+.stack-form select,
+.stack-form textarea {
+  background: linear-gradient(140deg, #191a1d, #242528);
+  border-color: #515257;
+  color: #f3f3f5;
+}
+.stack-form input::placeholder,
+.stack-form textarea::placeholder,
+.stack-form select:invalid {
+  color: #a7a8ac;
+  opacity: 1;
+}
+.stack-form select:focus,
+.stack-form input:focus,
+.stack-form textarea:focus {
+  border-color: #ff7348;
+  box-shadow: 0 0 0 3px #ff734820;
+  outline: none;
+}
+.stack-form .price-summary {
+  background: linear-gradient(120deg, #303134, #202124);
+  border-color: #55565a;
+}
+.dashboard .workspace {
+  background:
+    radial-gradient(circle at 82% 0, #343437 0, transparent 38%),
+    linear-gradient(145deg, #17181a, #101113 58%, #1d1e20);
+}
+.dashboard .stat-card,
+.stat-card {
+  background: linear-gradient(140deg, #2d2e31, #1d1e20);
+  border-color: #4c4d51;
+}
+.dashboard .stat-card svg,
+.stat-card svg {
+  color: #ff8964;
+}
+.dashboard-demo,
+.network-callout {
+  background: linear-gradient(125deg, #303134, #1d1e20);
+  border-color: #4b4c50;
+}
+.stack-form label:has(> input),
+.stack-form label:has(> select),
+.stack-form label:has(> textarea) {
+  color: transparent;
+  font-size: 0;
+  gap: 0;
+}
+.stack-form .form-toggle-content > label:has(> textarea) {
+  display: block;
+}
+.feature-picker {
+  min-width: 0;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+.feature-picker legend {
+  margin-bottom: 14px;
+  color: #e7e7e9;
+  font:
+    600 14px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.feature-group + .feature-group {
+  margin-top: 16px;
+}
+.feature-group h3 {
+  margin: 0 0 9px;
+  color: #aeb0b5;
+  font:
+    500 12px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.04em;
+}
+.feature-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.feature-options-scroll {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 64px;
+  margin: 0;
+  padding: 8px 4px 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #696a70 #252629;
+  -webkit-overflow-scrolling: touch;
+}
+.feature-options-scroll .feature-group-label {
+  flex: 0 0 auto;
+  margin-left: 5px;
+  color: #ff9a79;
+  font:
+    600 11px "Rajdhani",
+    sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.feature-options-scroll .feature-group-label:not(:first-child) {
+  padding-left: 13px;
+  border-left: 1px solid #55565b;
+}
+.feature-chip {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #4b4c50;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #27282b, #1c1d1f);
+  color: #d4d5d8;
+  font:
+    500 13px "Rajdhani",
+    sans-serif;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.feature-chip:hover {
+  border-color: #ff8964;
+  color: #fff;
+}
+.feature-chip.selected {
+  border-color: #ff7348;
+  background: linear-gradient(120deg, #693522, #3e2823);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #ff734833;
+}
+.feature-options-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.feature-options-scroll::-webkit-scrollbar-track {
+  background: #252629;
+  border-radius: 99px;
+}
+.feature-options-scroll::-webkit-scrollbar-thumb {
+  background: #696a70;
+  border-radius: 99px;
+}
+.photo-picker {
+  position: relative;
+  display: flex !important;
+  min-height: 108px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px !important;
+  border: 1px dashed #68696e;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #26272a, #1b1c1e);
+  color: #f2f2f3 !important;
+  font-size: 14px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  cursor: pointer;
+}
+.photo-picker small {
+  color: #a7a8ac;
+  font-size: 12px;
+}
+.photo-picker input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.vehicle-form-actions .btn {
+  min-height: 48px;
+}
+
+/* CS Car's shared shadcn-inspired surface and interaction language. */
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+.header,
+.header.scrolled {
+  background: #151618ed;
+  border-color: #ffffff14;
+}
+.header.transparent {
+  background: #11121400;
+}
+.header nav a,
+.header .nav a {
+  color: #e8e8ea;
+}
+.btn,
+.icon-btn,
+.round-arrow,
+.body-tabs button,
+.vehicle-tabs button,
+.filter-toggle,
+.catalog-toolbar select,
+.result-heading select {
+  border-radius: 10px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.btn.orange,
+.btn.primary {
+  background: linear-gradient(120deg, #fa7550, #e95838);
+  border-color: #ff8a67;
+  color: #fff;
+  box-shadow:
+    0 8px 22px #e9583822,
+    inset 0 1px #ffffff33;
+}
+.btn.orange:hover,
+.btn.primary:hover {
+  background: linear-gradient(120deg, #ff8965, #f06442);
+  box-shadow: 0 10px 28px #e9583840;
+  transform: translateY(-1px);
+}
+.btn.outline,
+.btn.dark,
+.icon-btn,
+.filter-toggle {
+  background: linear-gradient(140deg, #252629, #191a1c);
+  border-color: #4b4c51;
+  color: #ededee;
+}
+.btn.outline:hover,
+.btn.dark:hover,
+.icon-btn:hover,
+.filter-toggle:hover {
+  background: #343539;
+  border-color: #77787d;
+  color: #fff;
+}
+.btn.light {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 10px;
+  min-height: 56px;
+  background: #151a23dd;
+  color: #f5f7fb;
+  border-color: #ffffff55;
+  box-shadow: 0 10px 30px #0005;
+  backdrop-filter: blur(12px);
+}
+.btn.light::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 0 23%, #ff7348 32%, #ffba64 38%, transparent 48% 72%, #ff6347 82%, transparent 92%);
+  animation: neon-sweep 3.2s linear infinite;
+  filter: blur(7px);
+  opacity: 0.9;
+}
+.btn.light::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 9px;
+  background: #151a23;
+}
+.btn.light:hover {
+  background: #f2643d;
+  color: #fff;
+  border-color: #ff9878;
+}
+.filters,
+.filter-main,
+.catalog-toolbar,
+.filter-panel,
+.dashboard-header,
+.table-wrap,
+.referral-card,
+.network-callout,
+.contact-strip,
+.empty,
+.newsletter-form,
+.connection-steps article {
+  background: linear-gradient(145deg, #252629, #1a1b1d 72%, #222326);
+  border-color: #414247;
+  box-shadow:
+    0 14px 34px #0003,
+    inset 0 1px #ffffff08;
+}
+.filters input,
+.filters select,
+.stack-form input:not([type="checkbox"], [type="file"]),
+.stack-form select,
+.stack-form textarea,
+.dashboard-demo select,
+.auth-card input,
+.catalog-toolbar select,
+.result-heading select {
+  color: var(--foreground);
+  background-color: #191a1c;
+  border-color: #4a4b50;
+}
+.filters input::placeholder,
+.stack-form input::placeholder,
+.stack-form textarea::placeholder {
+  color: #aaaab0;
+  opacity: 1;
+}
+.filters input:focus,
+.filters select:focus,
+.stack-form input:focus,
+.stack-form select:focus,
+.stack-form textarea:focus,
+.auth-card input:focus {
+  border-color: #4a4b50;
+  box-shadow: none;
+  outline: 0;
+}
+.gc-shell.cs-car-catalog {
+  color-scheme: dark;
+}
+.body-tabs button,
+.vehicle-tabs button:not(.active) {
+  background: #202124;
+  border-color: #44454a;
+  color: #c8c9cd;
+}
+.body-tabs button:hover,
+.vehicle-tabs button:not(.active):hover {
+  border-color: #77787d;
+  background: #303135;
+  color: #fff;
+}
+.body-tabs button.selected,
+.vehicle-tabs button.active {
+  background: linear-gradient(135deg, #3c3d41, #27282b);
+  border-color: #696a70;
+  color: #fff;
+  box-shadow:
+    inset 0 1px #ffffff14,
+    0 4px 12px #0003;
+}
+.car-card {
+  background: linear-gradient(145deg, #292a2e, #1b1c20 58%, #292a2e);
+  border-color: #4b4c52;
+}
+.car-card::before {
+  background: conic-gradient(
+    from var(--card-shine-angle, 0deg),
+    transparent 0deg,
+    transparent 250deg,
+    #ff744b 292deg,
+    #d94d45 322deg,
+    transparent 350deg
+  );
+}
+.car-photo {
+  background: #252629;
+}
+.car-info {
+  background: linear-gradient(130deg, #303135, #242529 55%, #34353a);
+}
+.car-title h3,
+.car-price strong,
+.dashboard-title h1,
+.section-heading h2 {
+  color: #f4f4f5;
+}
+.car-year,
+.car-version,
+.car-location,
+.result-heading,
+.results-count {
+  color: #bfc0c5;
+}
+.car-specs,
+.car-specs span {
+  color: #d0d0d4;
+}
+.car-specs svg,
+.round-arrow {
+  color: #ff805b;
+}
+.round-arrow {
+  background: linear-gradient(135deg, #392521, #242124);
+  border-color: #9b503e;
+}
+.round-arrow:hover {
+  background: #ed6242;
+  color: #fff;
+}
+.dashboard,
+.dashboard .workspace {
+  background: linear-gradient(145deg, #161719, #101113 56%, #1d1e20);
+}
+.sidebar {
+  background: linear-gradient(180deg, #1e1f22, #161719);
+  border-color: #3d3e42;
+}
+.sidebar nav > button {
+  color: #c0c1c5;
+  border-radius: 10px;
+}
+.sidebar nav > button.active {
+  background: linear-gradient(110deg, #393a3e, #292a2d);
+  color: #fff;
+  box-shadow:
+    inset 3px 0 #f26b45,
+    inset 0 1px #ffffff0a;
+}
+.workspace-label,
+.network-status,
+.dashboard-header > div:first-child > span,
+.profile small,
+.dashboard-title p:not(.eyebrow),
+.dashboard-footnote {
+  color: #b0b1b6;
+}
+.avatar {
+  background: linear-gradient(135deg, #494a4e, #2b2c30);
+  color: #f5f5f6;
+}
+.stat-card,
+.referral-card {
+  background: linear-gradient(145deg, #303135, #202124 70%, #292a2d);
+  border-color: #4b4c50;
+  box-shadow:
+    0 12px 30px #0003,
+    inset 0 1px #ffffff0a;
+}
+.stat-card > div,
+.stat-card small,
+.referral-card-top .eyebrow,
+.referral-card > p,
+.referral-values span {
+  color: #c1c2c6;
+}
+.stat-card svg {
+  color: #f5825e;
+}
+.network-callout {
+  background: linear-gradient(120deg, #343538, #242528 68%, #302725);
+  border-color: #55565b;
+}
+.network-callout em,
+.dashboard-title h1 em {
+  color: #ff916f;
+}
+.table-wrap {
+  overflow: auto;
+}
+th {
+  background: #303135;
+  color: #e5e5e7;
+}
+td {
+  border-color: #3d3e42;
+}
+.status {
+  background: #303e36;
+  color: #c1e4cc;
+}
+.status.reserved,
+.status.visit {
+  background: #453a2b;
+  color: #f0d19a;
+}
+.status.sold,
+.status.paid {
+  background: #304338;
+  color: #c1e4cc;
+}
+.status.cancelled,
+.status.draft {
+  background: #36373b;
+  color: #cacbd0;
+}
+.referral-explainer {
+  background: #303135;
+  color: #dedee1;
+  border-color: #4d4e53;
+}
+.price-summary {
+  background: linear-gradient(120deg, #343538, #242528);
+  border-color: #55565a;
+}
+.connection,
+.sell-banner,
+.partner-banner {
+  background-color: #17181a;
+  border-color: #36373b;
+}
+.connection-steps article {
+  background: linear-gradient(145deg, #242528, #1b1c1e);
+}
+.connection-title h2 em,
+.partner-banner h2 em,
+.sell-copy h2 em {
+  color: #aeb0b5;
+}
+.contact-strip {
+  border-left: 0;
+  border-right: 0;
+}
+.modal,
+dialog.modal {
+  background: linear-gradient(145deg, #303135, #1b1c1f 58%, #292a2d);
+  border-color: #58595e;
+  color: #f4f4f5;
+  box-shadow:
+    0 28px 100px #000b,
+    inset 0 1px #ffffff0b;
+}
+.modal::backdrop,
+dialog.modal::backdrop {
+  background: #050506d9;
+  backdrop-filter: blur(8px);
+}
+.modal-heading {
+  border-color: #ffffff18;
+}
+.empty {
+  border-style: dashed;
+}
+.feature-options-scroll {
+  scrollbar-color: #696a70 #252629;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Last-pass vehicle editor sizing. */
+dialog.modal:has(.stack-form) { width: min(700px, calc(100vw - 32px)); max-width: 700px; max-height: min(760px, calc(100dvh - 32px)); padding: 18px 20px 14px; overflow: auto; border: 1px solid #48494d; border-radius: 15px; background: linear-gradient(145deg, #292a2d, #1c1d1f 58%, #252629); box-shadow: 0 22px 70px #000a, inset 0 1px #ffffff08; animation: none; }
+dialog.modal:has(.stack-form)::before { display: none; }
+dialog.modal:has(.stack-form) .modal-heading { margin: 0 0 3px; padding: 0; border: 0; }
+dialog.modal:has(.stack-form) .modal-heading h2 { font: 500 19px/1.2 "DM Sans", sans-serif; letter-spacing: -.02em; text-transform: none; }
+dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34px; }
+.vehicle-form-intro { margin: 0 0 10px; color: #aaabb0; font-size: 13px; font-weight: 400; }
+.stack-form { gap: 9px; }
+.vehicle-tabs { gap: 4px; padding: 3px; border: 1px solid #3d3e42; border-radius: 10px; background: #191a1c; }
+.vehicle-tabs button { min-height: 34px; padding: 0 7px; font: 500 12px/1 "DM Sans", sans-serif; }
+.vehicle-step { padding: 1px 0 0; }
+.vehicle-step-caption { margin: 0 0 8px; font-size: 12px; font-weight: 500; }
+.vehicle-grid { gap: 8px; }
+.stack-form input:not([type="checkbox"], [type="file"]), .stack-form select, .stack-form textarea { min-height: 40px; padding: 8px 11px; border: 1px solid #404145; border-radius: 8px; background: #1b1c1e; font: 400 13px/1.35 "DM Sans", sans-serif; }
+.vehicle-price-fields { gap: 8px; }
+.price-summary { margin-top: 8px; padding: 8px 10px; }
+.price-summary strong { font-size: 15px; font-weight: 500; }
+.vehicle-details-fields { gap: 8px; }
+.stack-form textarea { min-height: 68px; }
+.feature-picker legend { margin-bottom: 2px; font-weight: 500; }
+.feature-options-scroll { height: 50px; padding: 4px 1px 7px; gap: 6px; }
+.feature-chip { min-height: 28px; padding: 4px 9px; font-size: 12px; font-weight: 400; }
+.photo-picker { min-height: 46px; padding: 7px 10px; }
+.vehicle-form-actions { position: sticky; bottom: 0; z-index: 2; margin: 0; padding: 9px 0 2px; background: linear-gradient(180deg, #20212400, #202124 45%); }
+.vehicle-form-actions .btn { min-width: 104px; min-height: 40px; font-size: 13px; font-weight: 500; }
+.vehicle-form-actions .btn.orange {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #ff9a76;
+  background: linear-gradient(110deg, #e95635 0%, #ff7950 45%, #e95635 90%);
+  background-size: 220% 100%;
+  box-shadow: 0 5px 18px #f0643a44, inset 0 1px #ffffff35;
+  animation: vehicle-cta-glow 3.2s ease-in-out infinite, vehicle-cta-shift 5s linear infinite;
+}
+.vehicle-form-actions .btn.orange:hover { box-shadow: 0 7px 24px #f0643a66, inset 0 1px #ffffff50; transform: translateY(-1px); }
+@keyframes vehicle-cta-shift { to { background-position: -220% 0; } }
+@keyframes vehicle-cta-glow { 50% { box-shadow: 0 5px 24px #f0643a66, inset 0 1px #ffffff35; } }
+.feature-picker .feature-search { width: 100%; min-height: 36px; margin: 0 0 7px; }
+.selected-features { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.selected-features button { display: inline-flex; align-items: center; gap: 7px; min-height: 26px; padding: 3px 8px; border: 1px solid #765043; border-radius: 999px; background: #302522; color: #f2d8ce; font-size: 11px; }
+.selected-features span { color: #ff916f; font-size: 15px; line-height: 1; }
+.vehicle-photo-row { margin-top: 10px; }
+.team-admin { display: grid; gap: 18px; }
+.admin-panel { min-width: 0; padding: 18px; border: 1px solid #3d3e42; border-radius: 14px; background: linear-gradient(145deg,#26272a,#1d1e20); }
+.admin-panel .dashboard-section-title { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.admin-panel .dashboard-section-title span { color: #aeb0b5; font-size: 13px; }
+.team-invite-form,.location-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin: 14px 0; }
+.team-invite-form .btn,.location-form .btn { min-height: 40px; }
+.team-member-list { display: grid; gap: 8px; }
+.team-member { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 11px 12px; border: 1px solid #3c3d41; border-radius: 10px; background: #1a1b1d; }
+.team-member > div { display: grid; gap: 3px; flex: 1 1 180px; min-width: 0; }
+.team-member strong { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.team-member small { color: #aeb0b5; font-size: 12px; overflow-wrap: anywhere; }
+.team-member > input[type="number"] { width: 95px; min-height: 36px; }
+.team-permission { display: inline-flex; align-items: center; gap: 7px; color: #c9cace; font-size: 13px; }
+.team-permission input { accent-color: #f26b45; }
+@media (max-width: 640px) {
+  .admin-panel { padding: 13px; }
+  .team-invite-form,.location-form { grid-template-columns: 1fr; }
+  .team-member { gap: 9px; }
+  .team-member > div { flex-basis: 100%; }
+}
+.stack-form > .error { position: static; margin: 0; padding: 8px 10px; font-size: 12px; }
+@media (max-width: 640px) {
+  dialog.modal:has(.stack-form) { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 14px 13px max(12px, env(safe-area-inset-bottom)); border-radius: 13px; }
+  dialog.modal:has(.stack-form) .modal-heading h2 { font-size: 17px; }
+  .vehicle-form-intro { margin-bottom: 8px; font-size: 12px; }
+  .vehicle-tabs button { min-height: 33px; gap: 5px; padding: 0 4px; font-size: 11px; }
+  .stack-form { gap: 8px; }
+  .vehicle-grid { gap: 7px; }
+  .vehicle-grid input, .vehicle-grid select { min-height: 38px !important; padding: 7px 8px !important; font-size: 12px !important; }
+  .vehicle-price-fields { grid-template-columns: 1fr; gap: 7px; }
+  .vehicle-price-fields input { min-height: 38px !important; }
+  .price-summary { gap: 8px; margin-top: 7px; padding: 7px 9px; }
+  .price-summary small { display: none; }
+  .stack-form textarea { min-height: 62px; }
+  .feature-options-scroll { height: 46px; }
+  .photo-picker { min-height: 42px; }
+  .vehicle-form-actions { padding-top: 7px; }
+}
+@media (max-width: 380px) { .vehicle-tabs button { font-size: 11px; } .vehicle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Keep the fixed mobile navigation control above the full-screen hero. */
+@media (max-width: 680px) {
+  .header > .menu-btn {
+    display: inline-flex !important;
+    visibility: visible;
+    opacity: 1;
+    flex: 0 0 46px;
+    position: relative;
+    z-index: 41;
   }
 }
