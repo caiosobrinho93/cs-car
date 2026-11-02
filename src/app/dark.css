@@ -552,6 +552,16 @@ select option {
   opacity: 0.86;
   filter: brightness(0.96) saturate(0.9);
 }
+@media (max-width: 767px), (pointer: coarse) {
+  .home-carousel-video {
+    background:
+      linear-gradient(180deg, #090b0f20, #090b0f30),
+      url("/images/cs-car-mobile-wallpaper.webp") center 58% / cover no-repeat;
+  }
+  .home-carousel-video video {
+    display: none;
+  }
+}
 .home-carousel-section > :not(.home-carousel-video) {
   position: relative;
   z-index: 1;

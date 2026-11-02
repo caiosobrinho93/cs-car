@@ -318,10 +318,11 @@ function CarouselVideoBackground() {
     const activeSource = source as HTMLSourceElement;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileLayout = window.matchMedia("(max-width: 767px), (pointer: coarse)");
     let isVisible = false;
 
     function syncPlayback() {
-      if (reducedMotion.matches || !isVisible) {
+      if (mobileLayout.matches || reducedMotion.matches || !isVisible) {
         activeVideo.pause();
         return;
       }
@@ -344,9 +345,11 @@ function CarouselVideoBackground() {
 
     observer.observe(container);
     reducedMotion.addEventListener("change", syncPlayback);
+    mobileLayout.addEventListener("change", syncPlayback);
     return () => {
       observer.disconnect();
       reducedMotion.removeEventListener("change", syncPlayback);
+      mobileLayout.removeEventListener("change", syncPlayback);
       activeVideo.pause();
     };
   }, []);
