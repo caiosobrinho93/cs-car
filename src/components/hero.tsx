@@ -37,7 +37,7 @@ export default function Hero() {
     function playVideo() {
       if (disposed || reducedMotion || !isVisible) return;
       if (!video.src) {
-        video.src = "/videos/cs-car-hero.mp4";
+        video.src = "/videos/cs-car-carousel-background.mp4";
         video.load();
       }
       void video.play().catch(() => setVideoReady(false));
@@ -103,7 +103,7 @@ export default function Hero() {
         <picture className="hero-poster-frame">
           <img
             className="hero-poster"
-            src="/videos/cs-car-hero-poster.webp"
+            src="/videos/cs-car-carousel-poster.webp"
             alt=""
             fetchPriority="high"
             aria-hidden="true"

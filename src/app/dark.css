@@ -478,6 +478,12 @@ select option {
     radial-gradient(ellipse at 50% 45%, #29354a70, transparent 62%), #090b0f;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 180px);
   mask-image: linear-gradient(180deg, transparent 0, #000 180px);
+  background-image:
+    linear-gradient(180deg, #090b0f35, #090b0f55),
+    url("/images/cs-car-mobile-wallpaper.webp");
+  background-position: center, center 58%;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 .home-carousel-video::after {
   position: absolute;
@@ -492,24 +498,6 @@ select option {
       #090b0f54 100%
     ),
     radial-gradient(ellipse at 50% 42%, transparent 0%, #090b0f24 100%);
-}
-.home-carousel-video video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0.86;
-  filter: brightness(0.96) saturate(0.9);
-}
-@media (max-width: 767px), (pointer: coarse) {
-  .home-carousel-video {
-    background: #090b0f;
-  }
-  .home-carousel-video video {
-    object-position: center;
-    opacity: 0.78;
-  }
 }
 .home-carousel-section > :not(.home-carousel-video) {
   position: relative;
