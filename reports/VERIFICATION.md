@@ -15,14 +15,14 @@
 - Mobile (Chrome headless com viewport de 500×749): o menu fica fixo no canto superior, abre em tela cheia e fecha corretamente. A chamada da hero cabe na largura. Ao rolar além do fim da hero, o header troca para o fundo escuro; no topo, permanece transparente.
 - Tablet (768×1024): captura anterior conferida; hero, títulos e chamadas permanecem dentro da viewport.
 - Produção: `https://cs-car-alpha.vercel.app/` retorna HTTP 200, o título e a hero são renderizados, e os frames 001/196 desktop/mobile retornam HTTP 200 como `image/webp`.
-- Commit publicado: `6c724c4` (`Keep mobile menu control above hero`); Vercel marcou a implantação de produção como `READY` e atribuiu o alias `cs-car-alpha.vercel.app`.
+- Commit publicado: `ed419f6` (`Smooth hero frame scroll response`); Vercel marcou a implantação de produção como `READY` e atribuiu o alias `cs-car-alpha.vercel.app`.
 - Painel Supabase hospedado: migrações `20261102171304`, `20261102172037` e `20261102172132` aparecem no histórico.
-- Banco consultado: 1 membro administrador, 2 locais, 0 veículos.
+- Banco consultado após arquivar os anúncios de teste: 1 membro administrador, 2 locais e 4 veículos em rascunho; 0 veículos disponíveis para a vitrine.
 - Advisor de segurança: resta somente `auth_leaked_password_protection`, indisponível no plano Free escolhido.
 - Advisor de performance: não aponta índices ausentes; informa que 6 índices ainda não foram usados, condizente com as tabelas vazias.
 
 ## Pendente para operação pública
 
 - Convites por e-mail ainda dependem da configuração do SMTP Gmail no Supabase Auth e de `SUPABASE_SERVICE_ROLE_KEY` privada na Vercel. Esses segredos não estão no repositório, então o envio de convites não foi validado em produção.
-- Não há anúncios ativos; o catálogo real continuará vazio até a equipe cadastrar os primeiros veículos e fotos.
+- Os quatro anúncios de teste foram preservados como rascunhos, sem apagar os registros nem as fotos; a vitrine pública mostra o estado vazio até a equipe cadastrar e publicar veículos reais.
 - No plano Free, a proteção de senhas vazadas segue desativada conforme a decisão do proprietário.
