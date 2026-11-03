@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { ArrowDown } from "lucide-react";
 
 const INTRO_LOADER_DURATION = 2000;
 const INTRO_LOGO_FADE_IN = 600;
@@ -119,27 +118,14 @@ export default function Hero() {
           aria-hidden="true"
         />
         <div className="hero-shade" />
-        <div className="hero-kicker">
-          <span className="live-dot" /> CONECTANDO PESSOAS. MOVENDO HISTÓRIAS.
-        </div>
         <div className="hero-copy">
-          <p className="eyebrow">NÃO É SÓ SOBRE CARROS.</p>
           <h1>
-            É sobre o seu
-            <br />
-            próximo <em>capítulo.</em>
+            <span>ENCONTRE O VEÍCULO</span>
+            <em>CERTO</em>
           </h1>
-          <p>
-            O carro que você procura.
-            <br />A conexão que faltava.
-          </p>
-          <Link className="btn light" href="/loja">
-            Encontre seu próximo carro <ArrowUpRight size={19} />
-          </Link>
-        </div>
-        <div className="hero-bottom">
-          <a href="#selecao">
-            <ArrowDown size={16} /> ROLE PARA EXPLORAR
+          <p>Uma seleção feita para encontrar seu próximo caminho.</p>
+          <a className="btn fire-cta" href="#selecao">
+            Explorar veículos <ArrowDown size={18} aria-hidden="true" />
           </a>
         </div>
       </div>

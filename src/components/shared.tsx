@@ -35,24 +35,8 @@ export function Brand() {
 }
 export function Header() {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const update = () => {
-      const hero = document.querySelector<HTMLElement>(".hero");
-      const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 0;
-      setScrolled(hero ? hero.getBoundingClientRect().bottom <= headerBottom : window.scrollY > 24);
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
   return (
-    <header ref={headerRef} className={`header ${scrolled ? "scrolled" : "transparent"}`}>
+    <header className="header transparent">
       <Brand />
       {open && (
         <button

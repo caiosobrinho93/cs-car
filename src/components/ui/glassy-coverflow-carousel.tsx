@@ -19,6 +19,7 @@ import {
   Play,
   X,
 } from "lucide-react";
+import Link from "next/link";
 const glassyCarouselStyles =
   ".gc-shell{color-scheme:light;--gc-default-bg:Canvas;--gc-default-fg:CanvasText;--gc-default-card:Canvas;--gc-default-muted:color-mix(in srgb,CanvasText 72%,Canvas);--gc-default-border:color-mix(in srgb,CanvasText 30%,Canvas);--gc-default-primary:CanvasText;--gc-default-primary-ink:Canvas;--gc-background:var(--carousel-background,var(--color-background,var(--gc-default-bg)));--gc-foreground:var(--color-foreground,var(--gc-default-fg));--gc-card:var(--color-card,var(--gc-default-card));--gc-muted:color-mix(in srgb,var(--color-muted-foreground,var(--gc-default-muted)) 70%,var(--gc-foreground));--gc-border:var(--color-border,var(--gc-default-border));--gc-primary:var(--color-primary,var(--gc-default-primary));--gc-primary-ink:var(--color-primary-foreground,var(--gc-default-primary-ink));--gc-hover:color-mix(in srgb,var(--gc-foreground) 8%,transparent);--gc-shadow:var(--carousel-shadow-color,var(--color-foreground,CanvasText))}:where(.dark,[data-theme=dark]) .gc-shell,.gc-shell.dark{color-scheme:dark}.gc-card{color:var(--color-card-foreground,var(--gc-foreground))}.gc-dialog *{box-sizing:border-box}.gc-dialog a:focus-visible,.gc-dialog button:focus-visible{outline:2px solid var(--gc-primary);outline-offset:4px}.gc-shell{box-sizing:border-box;position:relative;isolation:isolate;display:grid;grid-template-rows:88px minmax(0,1fr) auto;min-height:600px;height:100svh;max-height:1000px;width:100%;padding-bottom:28px;overflow:clip;background:var(--gc-background);color:var(--gc-foreground);font-family:var(--carousel-font-body,var(--font-sans,ui-sans-serif,system-ui,sans-serif));-webkit-font-smoothing:antialiased}.gc-shell *{box-sizing:border-box}.gc-shell ::selection{background:var(--gc-primary);color:var(--gc-primary-ink)}.gc-shell button,.gc-shell a{-webkit-tap-highlight-color:transparent}.gc-shell button{font:inherit;color:inherit;cursor:pointer}.gc-shell button:disabled{opacity:.35;cursor:default}.gc-shell button:focus-visible,.gc-shell a:focus-visible{outline:2px solid var(--gc-primary);outline-offset:5px}.gc-atmosphere{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 44%,color-mix(in srgb,var(--gc-primary) 14%,var(--gc-background)),transparent 68%)}.gc-header{grid-row:1;display:flex;align-items:center;padding:0 5%;z-index:20}.gc-brand{display:inline-flex;align-items:center;text-decoration:none}.gc-brand>img{width:172px;height:auto;display:block}.gc-stage{grid-row:2;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;perspective:1100px;transform-style:preserve-3d;touch-action:pan-y;user-select:none;cursor:grab}.gc-stage[data-dragging]{cursor:grabbing}.gc-floor{position:absolute;bottom:0;left:50%;width:min(600px,80vw);height:35px;transform:translate(-50%);background:radial-gradient(ellipse,color-mix(in srgb,var(--gc-shadow) 40%,transparent),transparent 70%);filter:blur(12px);pointer-events:none}.gc-card{position:absolute;width:var(--gc-card-width);margin:0;padding:6px;display:block;border:1px solid var(--gc-border);border-radius:14px;background:var(--gc-card);box-shadow:inset 0 1px color-mix(in srgb,var(--gc-foreground) 8%,transparent),0 18px 32px color-mix(in srgb,var(--gc-shadow) 40%,transparent);backface-visibility:hidden;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .5s ease,border-color .25s;will-change:transform;cursor:pointer;outline-offset:7px!important;text-align:center}.gc-card[data-active]{border-color:var(--gc-border);box-shadow:inset 0 1px color-mix(in srgb,var(--gc-foreground) 12%,transparent),0 22px 40px color-mix(in srgb,var(--gc-shadow) 50%,transparent)}.gc-stage[data-dragging] .gc-card{transition:none}.gc-poster{display:block;position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;border-radius:9px;background:var(--gc-card)}.gc-poster>img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;pointer-events:none}.gc-poster-shade{position:absolute;inset:0;background:var(--gc-shadow);opacity:var(--gc-shade,0);transition:opacity .4s;pointer-events:none}.gc-browser-bar{height:28px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 8px;font-size:10px;color:var(--gc-muted)}.gc-browser-dots{display:flex;gap:4px}.gc-browser-dots i{width:4px;height:4px;border-radius:50%;background:var(--gc-border)}.gc-card-info{min-height:76px;padding:14px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}.gc-card-info>span{display:flex;flex-direction:column;gap:7px;min-width:0}.gc-card-info strong{font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.3px}.gc-card-info>span>span{font-size:11px;color:var(--gc-muted)}.gc-card-info>svg{flex-shrink:0;color:var(--gc-primary)}.gc-bottom{grid-row:3;position:relative;z-index:12;display:flex;align-items:center;flex-direction:column;gap:16px;padding:12px 20px 0}.gc-active-info{min-height:58px;text-align:center;max-width:100%}.gc-active-info h2{margin:0 0 8px;font-family:var(--carousel-font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));font-size:26px;font-weight:500;line-height:1.2;letter-spacing:-.5px;text-wrap:balance}.gc-active-info p{margin:0;font-size:12px;line-height:1.5;color:var(--gc-muted)}.gc-dock{display:flex;align-items:center;gap:12px;padding:5px 7px 5px 19px;border:1px solid var(--gc-border);border-radius:40px;background:color-mix(in srgb,var(--gc-card) 88%,transparent);box-shadow:inset 0 1px 0 var(--gc-hover),0 8px 22px color-mix(in srgb,var(--gc-shadow) 18%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}.gc-position{display:flex;align-items:center;gap:7px;padding-right:15px;border-right:1px solid var(--gc-border);font-size:11px;font-variant-numeric:tabular-nums;color:var(--gc-muted)}.gc-position>span:first-child{color:var(--gc-foreground)}.gc-transport{display:flex;align-items:center;gap:3px}.gc-dock button{border:0;background:none;display:flex;align-items:center;justify-content:center;padding:0;width:44px;height:44px;border-radius:50%;color:var(--gc-foreground);transition:background .16s,color .16s}.gc-dock button:hover,.gc-transport .gc-play-toggle{background:var(--gc-hover);color:var(--gc-foreground)}.gc-play-toggle svg{stroke-width:0}.gc-hint{display:flex;align-items:center;gap:7px;margin:0;color:var(--gc-muted);font-size:11px;line-height:1.5}.gc-hint-separator{color:var(--gc-muted);margin:0 2px}.gc-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.gc-dialog{padding:0;border:1px solid var(--gc-border);border-radius:16px;width:min(860px,calc(100vw - 32px));max-height:calc(100svh - 32px);background:var(--gc-card);color:var(--gc-foreground);box-shadow:0 30px 100px color-mix(in srgb,var(--gc-shadow) 55%,transparent);overflow:auto;scrollbar-color:var(--gc-muted) var(--gc-card);font-family:var(--carousel-font-body,var(--font-sans,ui-sans-serif,system-ui,sans-serif))}.gc-dialog::backdrop{background:color-mix(in srgb,var(--gc-shadow) 74%,transparent);backdrop-filter:blur(12px)}.gc-dialog[open]{animation:gc-modal-in .3s cubic-bezier(.22,1,.36,1)}@keyframes gc-modal-in{0%{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}.gc-dialog-panel{padding:13px}.gc-dialog-bar{display:flex;align-items:center;justify-content:space-between;padding:0 3px 12px;gap:20px}.gc-dialog-bar>span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gc-muted)}.gc-dialog-bar i{width:5px;height:5px;border-radius:50%;background:var(--gc-primary)}.gc-dialog-bar button{background:var(--gc-hover);border:1px solid var(--gc-border);border-radius:7px;display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;min-height:44px}.gc-project-preview{aspect-ratio:16/9;border-radius:9px;background:var(--gc-card);overflow:hidden}.gc-project-preview>iframe,.gc-project-preview>img{border:0;width:100%;height:100%;object-fit:contain}.gc-dialog-caption{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:20px 5px 6px}.gc-dialog-caption h2{font-family:var(--carousel-font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));font-weight:500;font-size:24px;letter-spacing:-.5px;margin:0 0 7px}.gc-dialog-caption p{font-size:13px;line-height:1.6;margin:0;color:var(--gc-muted);max-width:540px}.gc-dialog-caption>span{white-space:nowrap;font-size:11px;color:var(--gc-muted);margin-top:5px}.gc-external{display:inline-flex;gap:9px;align-items:center;color:var(--gc-primary-ink)!important;background:var(--gc-primary);text-decoration:none;text-underline-offset:3px;font-size:12px;font-weight:500;margin:12px 5px 6px;padding:11px 15px;border:1px solid var(--gc-border);border-radius:7px;min-height:44px}.gc-external:hover{background:color-mix(in srgb,var(--gc-primary) 85%,var(--gc-background))}.gc-shell[data-layout=poster] .gc-poster{aspect-ratio:2/3}.gc-shell[data-layout=poster] .gc-poster>img{object-fit:cover;object-position:center}.gc-watch{position:absolute;bottom:16px;left:50%;transform:translate(-50%);display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;white-space:nowrap;border-radius:24px;padding:9px 16px;background:color-mix(in srgb,var(--gc-card) 94%,transparent);border:1px solid var(--gc-border);backdrop-filter:blur(8px);font-size:12px;font-weight:600;opacity:0;transition:opacity .2s}.gc-card[data-active] .gc-watch{opacity:1}.gc-card[data-active]:hover .gc-watch{background:var(--gc-primary);color:var(--gc-primary-ink)}@media(min-width:1600px){.gc-stage{perspective:1250px}}@media(max-width:600px){.gc-shell{grid-template-rows:76px minmax(0,1fr) auto;min-height:560px;max-height:800px;padding-bottom:22px}.gc-header{padding:0 6%}.gc-brand>img{width:154px}.gc-stage{perspective:900px}.gc-card{padding:5px;border-radius:12px}.gc-poster{border-radius:7px}.gc-browser-bar{font-size:8px;height:25px}.gc-card-info{padding:10px 4px;gap:8px}.gc-card-info strong{font-size:13px}.gc-card-info>span>span{font-size:10px}.gc-bottom{gap:14px;padding-top:12px}.gc-active-info{min-height:56px}.gc-active-info h2{font-size:23px}.gc-active-info p{font-size:11px}.gc-watch{bottom:12px;padding:8px 12px;gap:6px;font-size:11px}.gc-dialog-caption{flex-direction:column;gap:10px;padding-top:15px}.gc-dialog-caption h2{font-size:20px}.gc-dialog-caption>span{margin:0}}@media(max-height:650px){.gc-shell{padding-bottom:18px}.gc-bottom{gap:10px}.gc-active-info{min-height:48px}.gc-active-info h2{font-size:21px;margin-bottom:5px}}.gc-brand>.gc-logo-dark{display:none}.gc-brand>.gc-logo-light{display:block}:where(.dark,[data-theme=dark]) .gc-shell .gc-brand>.gc-logo-dark,.gc-shell.dark .gc-brand>.gc-logo-dark{display:block}:where(.dark,[data-theme=dark]) .gc-shell .gc-brand>.gc-logo-light,.gc-shell.dark .gc-brand>.gc-logo-light{display:none}@media(prefers-reduced-motion:reduce){.gc-card,.gc-poster-shade,.gc-watch{transition:none!important}.gc-dialog[open]{animation:none!important}}";
 
@@ -44,6 +45,35 @@ const csCarCatalogStyles = `
     margin-top: clamp(80px, 23.2svh, 207px);
     padding: 0;
     gap: 0;
+  }
+  .gc-shell.cs-car-catalog .gc-store-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 48px;
+    margin-top: 18px;
+    padding: 0 22px;
+    border: 1px solid #ff7858a8;
+    border-radius: 9px;
+    color: #fff;
+    background: linear-gradient(110deg, #ff6745, #e94732 48%, #ff8a42);
+    background-size: 200% 100%;
+    box-shadow: 0 8px 26px #f04d3b35, inset 0 1px #ffffff40;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-decoration: none;
+    transition: background-position .45s ease, box-shadow .25s ease, transform .25s ease;
+  }
+  .gc-shell.cs-car-catalog .gc-store-link:hover {
+    background-position: 100% 0;
+    box-shadow: 0 10px 32px #f04d3b58, inset 0 1px #ffffff55;
+    transform: translateY(-2px);
+  }
+  .gc-shell.cs-car-catalog .gc-store-link:focus-visible {
+    outline: 2px solid #ffb07e;
+    outline-offset: 4px;
   }
   .gc-shell.cs-car-catalog .gc-active-info,
   .gc-shell.cs-car-catalog .gc-position,
@@ -197,7 +227,12 @@ const csCarCatalogStyles = `
   .gc-shell.cs-car-catalog .gc-card-info strong {
     grid-column: 1;
     grid-row: 1;
-    max-width: calc(100% - 52px);
+    width: 100%;
+    max-width: none;
+    padding-right: 70px;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: normal;
     font-size: 20px;
     line-height: 1.16;
     font-family: Orbitron, Rajdhani, sans-serif;
@@ -845,6 +880,9 @@ export default function GlassyCarousel({
             </button>
           </div>
         </div>
+        <Link className="gc-store-link" href="/loja">
+          Ir para a loja <ArrowUpRight size={17} aria-hidden="true" />
+        </Link>
         {!compactControls && (
           <p className="gc-hint">
             <span>Drag to explore</span>

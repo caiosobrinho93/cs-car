@@ -1749,6 +1749,24 @@ td {
     width: 132px;
     height: 48px;
   }
+  .header > .brand {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 170px;
+    height: 41px;
+    justify-content: center;
+    transform: translateX(-50%);
+    border: 1px solid #ffffff2b;
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    background: linear-gradient(115deg, #171b22f4, #121720f8 58%, #1b1824f4);
+    box-shadow: 0 7px 18px #0007, inset 0 1px #ffffff0a;
+  }
+  .header > .brand .brand-logo {
+    width: 117px;
+    height: auto;
+  }
   .menu-btn {
     display: inline-flex !important;
     position: relative;
@@ -2712,6 +2730,82 @@ dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34
 }
 @media (max-width: 380px) { .vehicle-tabs button { font-size: 11px; } .vehicle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* Mobile hero: place the copy low and right with a stronger racing headline. */
+@media (max-width: 680px) {
+  .hero-copy {
+    top: 50%;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    padding: 24px 24px 24px 12%;
+    text-align: right;
+    background: linear-gradient(270deg, #07090ef2 0%, #07090ec9 56%, #07090e45 88%, transparent 100%);
+    border-right: 3px solid #ff604a;
+    box-shadow: 16px 0 34px -18px #ff604a;
+    transform: translateY(calc(-50% + (1 - var(--intro)) * -45px));
+  }
+  .hero-copy::before {
+    width: 54px;
+    height: 2px;
+    margin: 0 0 15px auto;
+    background: linear-gradient(90deg, #ffb05d, #ff503f);
+    box-shadow: 0 0 18px #ff553fba;
+  }
+  .hero h1 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    max-width: none;
+    margin: 0 0 17px auto;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-shadow: 0 3px 24px #0009;
+  }
+  .hero h1 > span {
+    color: #f0f2f4;
+    font-family: "Rajdhani", sans-serif;
+    font-size: clamp(23px, 6vw, 30px);
+    font-weight: 600;
+    letter-spacing: .13em;
+  }
+  .hero h1 em {
+    display: block;
+    margin: 0;
+    font-family: "Orbitron", "Rajdhani", sans-serif;
+    font-size: clamp(40px, 11.5vw, 60px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -.075em;
+    text-transform: uppercase;
+    color: transparent;
+    background: linear-gradient(100deg, #ffc16a, #ff7047 52%, #ff3f39);
+    background-clip: text;
+    -webkit-background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 16px #ff503f55);
+  }
+  .hero-copy > p:not(.eyebrow) {
+    margin-left: auto;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #eef0f4;
+    text-shadow: 0 2px 12px #000;
+  }
+  .hero-copy .btn {
+    margin: 20px 0 0 auto;
+    min-height: 48px;
+    padding: 13px 16px;
+    font-size: 15px;
+    box-shadow: 0 8px 28px #0006, 0 0 20px #ff674533;
+  }
+}
+
 /* Keep the fixed mobile navigation control above the full-screen hero. */
 @media (max-width: 680px) {
   .header > .menu-btn {
@@ -2720,10 +2814,79 @@ dialog.modal:has(.stack-form) .modal-heading .icon-btn { width: 34px; height: 34
     opacity: 1;
     flex: 0 0 46px;
     position: fixed;
-    top: 15px;
-    right: 5%;
+    top: 0;
+    right: 0;
     z-index: 50;
+    border-radius: 0 0 0 13px;
   }
+}
+
+/* Hero callout: a clear message with a warm, racing-inspired action. */
+.hero-copy h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-transform: uppercase;
+}
+.hero-copy h1 > span {
+  display: block;
+  color: #f4f2f0;
+  font-family: "Rajdhani", sans-serif;
+  font-size: clamp(27px, 4.2vw, 54px);
+  font-weight: 600;
+  letter-spacing: .08em;
+  line-height: 1;
+}
+.hero-copy h1 em {
+  display: block;
+  color: transparent;
+  background: linear-gradient(100deg, #ffc16a 0%, #ff7047 52%, #ff3f39 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-family: "Orbitron", "Rajdhani", sans-serif;
+  font-size: clamp(72px, 11vw, 148px);
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -.08em;
+  line-height: .98;
+  filter: drop-shadow(0 0 22px #ff503f4d);
+}
+.hero-copy .fire-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 14px 22px;
+  border: 1px solid #ff9a6d;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(110deg, #ff8743, #f14b36 48%, #ffb04a 82%, #ff6745);
+  background-size: 220% 100%;
+  box-shadow: 0 8px 26px #f04d3b48, inset 0 1px #ffffff58;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  animation: fire-cta-flow 3.2s ease-in-out infinite;
+  transition: box-shadow .25s ease, transform .25s ease;
+}
+.hero-copy .fire-cta:hover {
+  box-shadow: 0 10px 36px #ff563d88, inset 0 1px #ffffff70;
+  transform: translateY(-2px);
+}
+@keyframes fire-cta-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (max-width: 680px) {
+  .hero-copy h1 { align-items: flex-end; }
+  .hero-copy h1 > span { font-size: clamp(21px, 5.4vw, 28px); }
+  .hero-copy h1 em { font-size: clamp(54px, 15vw, 78px); }
+  .hero-copy .fire-cta { margin: 20px 0 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy .fire-cta { animation: none; }
 }
 
 /* Loja: polish the intro and keep the inventory cards crisp and compact. */
